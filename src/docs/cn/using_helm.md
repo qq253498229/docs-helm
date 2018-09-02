@@ -1,0 +1,508 @@
+# 使用 Helm
+
+本指南介绍了使用Helm（和Tiller）管理Kubernetes集群上的软件包的基础知识。
+他的前提是您已经[安装](install.html)Helm客户端和Tiller服务端（通常通过`helm init`）。
+
+如果您只是想运行一些快速命令，您可能希望从[快速入门指南](quickstart.html)开始。
+本章介绍Helm命令的详细信息，并说明如何使用Helm。
+
+- [三大概念](#三大概念)
+- [查看Charts](#查看Charts)
+- [安装软件包](#安装软件包)
+  - [在安装前自定义Chart](#在安装前自定义Chart)
+    - [--set的格式和限制](#set选项的格式和限制)
+  - [更多安装方法](#更多安装方法)
+- [升级版本，并在失败时恢复](#升级版本，并在失败时恢复)
+- [对安装/升级/回滚有用的选项](#对安装/升级/回滚有用的选项)
+- [删除发行版](#删除发行版)
+- [使用存储库](#使用存储库)
+- [创建您自己的Charts](#创建您自己的Charts)
+- [Tiller,命名空间和基于角色的访问控制(RBAC)](#Tiller,命名空间和基于角色的访问控制(RBAC))
+- [结论](#结论)
+
+## 三大概念
+
+A *Chart* 是Helm包。
+它包含Kubernetes集群内运行应用程序，工具或服务所需的所有资源定义。
+可以把它想象成类似于Homebrew命令，Apt dpkg或Yum RPM的Kubernetes版本。
+
+A *Repository* 是可以收集和共享Chart的地方。
+它类似于Perl的[CPAN存档](http://www.cpan.org)或[Fedora包数据库](https://admin.fedoraproject.org/pkgdb/)的Kubernetes版本。
+
+A *Release* 是在Kubernetes集群中运行的Chart的实例。
+一个Chart通常可以多次安装到同一个集群中。
+每次安装时，都会创建一个新的 _release_ 。
+参考 MySQL Chart。
+如果要在群集中运行两个数据库，则可以安装该 Chart 两次。
+这两个数据库都有自己的 _release_ ，而后者又有自己的 _release name_ 。
+
+结合到这些概念，我们现在可以这样解释Helm：
+
+Helm将 _charts_ 安装到Kubernetes中，每次安装会创建一个新的 _release_。
+要查看新Chart，您可以搜索Helm chart _repositories_。
+
+## 查看Charts
+
+当您第一次安装Helm时，它已预先配置为与官方Kubernetes的Chart存储库通信。
+该存储库包含许多精心策划和维护的Chart。
+默认情况下，此chart存储库名为“stable”。
+
+您可以通过运行`helm search`查看哪些Chart可用：
+
+```console
+$ helm search
+NAME                 	VERSION 	DESCRIPTION
+stable/drupal   	0.3.2   	One of the most versatile open source content m...
+stable/jenkins  	0.1.0   	A Jenkins Helm chart for Kubernetes.
+stable/mariadb  	0.5.1   	Chart for MariaDB
+stable/mysql    	0.1.0   	Chart for MySQL
+...
+```
+
+如果没有使用过滤器，`helm search`会显示所有可用的Chart。
+可以通过使用过滤器进行搜索来缩小搜索范围：
+
+```console
+$ helm search mysql
+NAME               	VERSION	DESCRIPTION
+stable/mysql  	0.1.0  	Chart for MySQL
+stable/mariadb	0.5.1  	Chart for MariaDB
+```
+
+现在，您只会看到与您的过滤器匹配的结果。
+
+列表中为什么有“mariadb”？
+因为它的包描述与MySQL有关。 我们可以使用`helm inspect chart`看到这个结果：
+
+```console
+$ helm inspect stable/mariadb
+Fetched stable/mariadb to mariadb-0.5.1.tgz
+description: Chart for MariaDB
+engine: gotpl
+home: https://mariadb.org
+keywords:
+- mariadb
+- mysql
+- database
+- sql
+...
+```
+
+查找可用包最好的方式就是搜索。
+找到要安装的软件包后，可以使用`helm install`进行安装。
+
+## 安装发行版
+
+要安装新软件包，请使用`helm install`命令。
+最简单方法只需要一个参数：chart的名称。
+
+```console
+$ helm install stable/mariadb
+Fetched stable/mariadb-0.3.0 to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+happy-panda
+Last Deployed: Wed Sep 28 12:32:28 2016
+Namespace: default
+Status: DEPLOYED
+
+Resources:
+==> extensions/Deployment
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+happy-panda-mariadb   1         0         0            0           1s
+
+==> v1/Secret
+NAME                     TYPE      DATA      AGE
+happy-panda-mariadb   Opaque    2         1s
+
+==> v1/Service
+NAME                     CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+happy-panda-mariadb   10.0.0.70    <none>        3306/TCP   1s
+
+
+Notes:
+MariaDB can be accessed via port 3306 on the following DNS name from within your cluster:
+happy-panda-mariadb.default.svc.cluster.local
+
+To connect to your database run the following command:
+
+   kubectl run happy-panda-mariadb-client --rm --tty -i --image bitnami/mariadb --command -- mysql -h happy-panda-mariadb
+```
+
+现在安装了 `mariadb` chart。
+请注意，安装chart会创建一个新的 _release_ 对象。
+上面的版本被命名为 `happy-panda`。
+（如果您想使用自己的版本名称，只需在`helm install`上使用`--name`标志。）
+
+在安装过程中，`helm`客户端将打印有关创建资源的有用信息及发布状态，
+以及是否可以或应该采取其他配置步骤。
+
+Helm不会等到所有资源都出于运行状态之后才退出。
+许多chart需要大小超过600M的Docker镜像，并且可能需要很长时间才能安装到群集中。
+
+要跟踪发布的状态或重新读取配置信息，可以使用`helm status`：
+
+```console
+$ helm status happy-panda
+Last Deployed: Wed Sep 28 12:32:28 2016
+Namespace: default
+Status: DEPLOYED
+
+Resources:
+==> v1/Service
+NAME                     CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+happy-panda-mariadb   10.0.0.70    <none>        3306/TCP   4m
+
+==> extensions/Deployment
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+happy-panda-mariadb   1         1         1            1           4m
+
+==> v1/Secret
+NAME                     TYPE      DATA      AGE
+happy-panda-mariadb   Opaque    2         4m
+
+
+Notes:
+MariaDB can be accessed via port 3306 on the following DNS name from within your cluster:
+happy-panda-mariadb.default.svc.cluster.local
+
+To connect to your database run the following command:
+
+   kubectl run happy-panda-mariadb-client --rm --tty -i --image bitnami/mariadb --command -- mysql -h happy-panda-mariadb
+```
+
+以上显示了您的发布的当前状态。
+
+### 在安装前自定义Chart
+
+我们这里的安装方式只会使用此chart的默认配置选项。
+很多时候，您需要自定义chart以使用首选配置。
+
+要查看chart上可配置的选项，请使用`helm inspect values`：
+
+```console
+helm inspect values stable/mariadb
+Fetched stable/mariadb-0.3.0.tgz to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+## Bitnami MariaDB image version
+## ref: https://hub.docker.com/r/bitnami/mariadb/tags/
+##
+## Default: none
+imageTag: 10.1.14-r3
+
+## Specify a imagePullPolicy
+## Default to 'Always' if imageTag is 'latest', else set to 'IfNotPresent'
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+##
+# imagePullPolicy:
+
+## Specify password for root user
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#setting-the-root-password-on-first-run
+##
+# mariadbRootPassword:
+
+## Create a database user
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+##
+# mariadbUser:
+# mariadbPassword:
+
+## Create a database
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
+##
+# mariadbDatabase:
+```
+
+然后，您可以覆盖任何YAML格式的文件中的配置，然后在安装期间使用该文件。
+
+```console
+$ echo '{mariadbUser: user0, mariadbDatabase: user0db}' > config.yaml
+$ helm install -f config.yaml stable/mariadb
+```
+
+上面的命令将创建一个名为`user0`的默认MariaDB用户，并授予该用户访问新创建的`user0db`数据库的权限，
+但是会接受该chart的所有其余默认值。
+
+安装时有两种方法可以传递配置数据：
+
+- `--values`（或`-f`）：指定覆盖的YAML文件。 可以多次指定，最右边的文件优先
+- `--set`（及其变体`--set-string`和`--set-file`）：在命令行上指定覆盖。
+
+如果两者都使用，则`--set`值合并为具有更高优先级的`--values`。
+使用`--set`指定的覆盖将保留在configmap中。
+可以使用`helm get values <release-name>`查看给定版本的`--set`值。
+可以通过运行`helm upgrade`并指定`--reset-values`来清除已经`-set`的值。
+
+#### set选项的格式和限制
+
+`--set`选项使用零个或多个名称/值对。
+最简单的方法是：`--set name=value`。 在YAML中是这样的：
+
+```yaml
+name: value
+```
+
+多个值由 `,` 分隔。所以 `--set a=b,c=d` 可以这样写:
+
+```yaml
+a: b
+c: d
+```
+
+支持更复杂的表达式。
+例如，`--set outer.inner=value` 是这样的：
+
+```yaml
+outer:
+  inner: value
+```
+
+列表可以通过在`{`和`}`中包含值来表示。
+例如，`--set name = {a，b，c}`转换为：
+
+```yaml
+name:
+  - a
+  - b
+  - c
+```
+
+从Helm 2.5.0开始，可以使用数组索引语法访问列表项。
+例如，`--set servers[0].port=80` 变为：
+
+```yaml
+servers:
+  - port: 80
+```
+
+可以通过这种方式设置多个值 `--set servers[0].port=80,servers[0].host=example` 变为：
+
+```yaml
+servers:
+  - port: 80
+    host: example
+```
+
+有时您需要在 `--set` 行中使用特殊字符。
+这时候可以使用反斜杠来进行转移 `--set name="value1\,value2"`：
+
+```yaml
+name: "value1,value2"
+```
+
+类似地，您也可以转义点序列，当chart使用`toYaml`函数来解析注释，标签和节点选择器时，这可能会派上用场。
+`--set nodeSelector。“kubernetes \ .io / role”= master`的语法变为：
+
+```yaml
+nodeSelector:
+  kubernetes.io/role: master
+```
+
+使用`--set`很难表达深层嵌套的数据结构。
+在设计`values.yaml`文件的格式时，鼓励chart设计者考虑`--set`用法。
+
+Helm会将使用`--set`指定的某些值转换为整数。
+例如，`--set foo=true`会导致Helm将`true`转换为int64值。
+如果你想要一个字符串，使用`--set`的变种名为`--set-string`。 `--set-string foo=true`导致字符串值为`"true"`。
+
+`--set-file key=filepath`是`--set`的另一种变体。
+它读取文件并将其内容用作值。
+它的一个示例用例是将多行文本注入值而不处理YAML中的缩进。
+假设您要创建一个[brigade](https://github.com/Azure/brigade)项目，其中包含包含5行JavaScript代码的特定值，您可以编写一个`values.yaml`，如：
+
+```yaml
+defaultScript: |
+  const { events, Job } = require("brigadier")
+  function run(e, project) {
+    console.log("hello default script")
+  }
+  events.on("run", run)
+```
+
+在YAML中编写，会使您更难以使用IDE功能和测试框架等支持您编写代码。
+相反，你可以使用`--set-file defaultScript=brigade.js`和`brigade.js`包含：
+
+```javascript
+const { events, Job } = require("brigadier")
+function run(e, project) {
+  console.log("hello default script")
+}
+events.on("run", run)
+```
+
+### 更多安装方法
+
+`helm install`命令可以从几个来源安装：
+
+- chart存储库（如上所述）
+- 本地chart压缩包（`helm install foo-0.1.1.tgz`）
+- 一个解压缩的chart目录（`helm install path/to/foo`）
+- 完整的URL（`helm install https://example.com/charts/foo-1.2.3.tgz`）
+
+## 升级版本，并在失败时恢复
+
+当发布新版本的chart时，或者当您想要更改发行版的配置时，可以使用`helm upgrade`命令。
+
+升级需要一个已经存在的版本并根据您提供的信息进行升级。
+由于Kuberneteschart可能很大且很复杂，因此Helm尝试执行侵入性最小的升级。
+它只会根据上次发布以来已更改的内容来更新。
+
+```console
+$ helm upgrade -f panda.yaml happy-panda stable/mariadb
+Fetched stable/mariadb-0.3.0.tgz to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+happy-panda has been upgraded. Happy Helming!
+Last Deployed: Wed Sep 28 12:47:54 2016
+Namespace: default
+Status: DEPLOYED
+...
+```
+
+在上面的例子中，`happy-panda`这个发行版使用相同的chart进行升级，但是却使用了新的YAML文件：
+
+```yaml
+mariadbUser: user1
+```
+
+我们可以使用 `helm get values` 来查看新设置是否生效。
+
+```console
+$ helm get values happy-panda
+mariadbUser: user1
+```
+
+`helm get` 命令是查看集群中发行版的有用工具。 
+正如我们上面所看到的，它表明我们将`panda.yaml`部署到集群中的新值。
+
+现在，如果在发布期间某些内容没有按计划进行，
+使用`helm rollback [RELEASE] [REVISION]`很容易回滚到以前的版本。
+
+```console
+$ helm rollback happy-panda 1
+```
+
+以上内容将我们的 `happy-panda` 推回到它的第一个版本。发行版是增量修订版。
+每次发生安装，升级或回滚时，修订号都会增加1。第一个修订号始终为1。
+我们可以使用`helm history [RELEASE]`查看某个版本的修订版号。
+
+## 对安装/升级/回滚有用的选项
+
+您可以指定其他一些有用的选项，以便在安装/升级/回滚期间自定义Helm的行为。
+请注意，这不是cli的全部选项。
+要查看所有选项的描述，只需运行`helm <command> --help`。
+
+- `--timeout`：等待Kubernetes命令完成的时间（以秒为单位）默认为300（5分钟）
+- `--wait`：等待所有Pod处于就绪状态、PVC已经绑定、Deployments处于最小（`Desired`减去`maxUnavailable`）就绪状态的Pod、服务在将发布标记为成功之前拥有IP地址（如果是“LoadBalancer”，则为Ingress）。
+   它会等待`--timeout`设置的时间。如果超时，则会释放并将标记设置为`FAILED`。
+   注意：在Deployment将`replicas`设置为1并且`maxUnavailable`未设置为0，在这样的滚动更新策略的情况下，`--wait`将在准备就绪时返回，因为它已满足最小Pod状态。
+- `--no-hooks`：这会跳过命令的运行勾子
+- `--recreate-pods`（仅适用于`upgrade`和`rollback`）：此选项将导致重新创建所有pod（处于部署中的pod除外）
+
+## 删除发行版
+
+当需要从群集中卸载或删除发行版时，可以使用`helm delete`命令：
+
+```console
+$ helm delete happy-panda
+```
+
+这条命令会从群集中删除该版本。
+您可以使用`helm list`命令查看所有当前部署的版本：
+
+```console
+$ helm list
+NAME           	VERSION	UPDATED                        	STATUS         	CHART
+inky-cat       	1      	Wed Sep 28 12:59:46 2016       	DEPLOYED       	alpine-0.1.0
+```
+
+从上面的输出中，我们可以看到`happy-panda`版本被删除了。
+
+但是，Helm始终记录发行版的操作。
+需要查看已删除的版本？ `helm list --deleted`可以帮到您，或使用 `helm list --all`显示所有版本（包括已删除的和当前已部署、以及失败的版本）：
+
+```console
+⇒  helm list --all
+NAME           	VERSION	UPDATED                        	STATUS         	CHART
+happy-panda   	2      	Wed Sep 28 12:47:54 2016       	DELETED        	mariadb-0.3.0
+inky-cat       	1      	Wed Sep 28 12:59:46 2016       	DEPLOYED       	alpine-0.1.0
+kindred-angelf 	2      	Tue Sep 27 16:16:10 2016       	DELETED        	alpine-0.1.0
+```
+
+由于Helm保留已删除版本的记录，因此无法重用版本名称。
+（如果您 _非要_ 重新使用版本名称，可以使用`--replace`标志，但它只是重用现有版本并替换其资源。）
+
+请注意，由于以这种方式保留版本，因此您可以回滚已删除的资源，并重新激活它。
+
+## 使用存储库
+
+到目前为止，我们一直只在`stable`存储库中安装chart。
+但是您也可以配置`helm`来使用其他存储库。
+Helm在`helm repo`命令下提供了几个存储库工具。
+
+您可以使用`helm repo list`查看配置了哪些存储库：
+
+```console
+$ helm repo list
+NAME           	URL
+stable         	https://kubernetes-charts.storage.googleapis.com
+local          	http://localhost:8879/charts
+mumoshu        	https://mumoshu.github.io/charts
+```
+
+可以通过 `helm repo add` 添加一个新的存储库。
+
+```console
+$ helm repo add dev https://example.com/dev-charts
+```
+
+由于chart存储库会经常更改，因此您可以通过运行`helm repo update`来确保您的存储库是最新的。
+
+## 创建您自己的Charts
+
+[chart开发指南](charts.html)解释了如何开发自己的charts。
+但是您也可以使用`helm create`命令快速入门：
+
+```console
+$ helm create deis-workflow
+Creating deis-workflow
+```
+
+现在`./deis-workflow`目录中有一个chart了。 您可以编辑它并创建自己的模板。
+
+在编辑chart时，可以通过运行`helm lint`来验证格式是否正确。
+
+当需要打包chart以进行分发时，可以运行`helm package`命令：
+
+```console
+$ helm package deis-workflow
+deis-workflow-0.1.0.tgz
+```
+
+之后您可以通过 `helm install` 轻松的进行安装:
+
+```console
+$ helm install ./deis-workflow-0.1.0.tgz
+...
+```
+
+打包后的chart可以加载到chart存储库中。
+请参阅chart存储库的文档来了解如何上传。
+
+注意：`stable`存储库在[Kubernetes Charts GitHub存储库](https://github.com/kubernetes/charts)上管理。
+该项目接受chart源代码，并且（在审核后）为您打包。
+
+## Tiller,命名空间和基于角色的访问控制(RBAC)
+
+在某些情况下，您可能希望将Tiller范围扩展或将多个Tillers部署到单个群集。 以下是在这些情况下操作时的一些最佳实践。
+
+1.Tiller可以[安装](install.html) 到任何命名空间。 默认情况下，它安装在kube-system中。 如果每个分蘖都在自己的命名空间中运行，则可以运行多个分蘖。
+2.限制分蘖仅能够安装到特定名称空间和/或资源类型中由Kubernetes [RBAC](https://kubernetes.io/docs/admin/authorization/rbac/)角色和角色绑定控制。 
+通过`helm init --service-account <NAME>`配置Helm时，可以向Tiller添加服务帐户。 你可以在[这里](rbac.html)找到更多相关信息。
+3.发布名称是唯一的PER TILLER INSTANCE。
+4.chart应仅包含单个命名空间中存在的资源。
+5.不建议将多个Tillers配置为管理同一命名空间中的资源。
+
+## 结论
+
+本章介绍了`helm`客户端的基本使用模式，包括搜索，安装，升级和删除。
+它还包括有用的实用程序命令，如`helm status`，`helm get`和`helm repo`。
+
+有关这些命令的更多信息，请查看Helm的内置帮助：`helm help`。
+
+在下一章中，我们将介绍开发chart的过程。

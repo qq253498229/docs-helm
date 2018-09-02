@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-helm
+  labels:
+    app: docs-helm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: docs-helm
+      labels:
+        app: docs-helm
+    spec:
+      containers:
+      - name: docs-helm
+        image: registry.cn-qingdao.aliyuncs.com/wangdali/docs-helm:latest
+        imagePullPolicy: Always
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      app: docs-helm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docs-helm
+spec:
+  selector:
+    app: docs-helm
+  ports:
+  - port: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: docs-helm
+spec:
+  tls:
+  - hosts:
+    - docs-helm.codeforfun.cn
+    secretName: docs-helm.codeforfun.cn-secret
+  rules:
+  - host: docs-helm.codeforfun.cn
+    http:
+      paths:
+      - backend:
+          serviceName: docs-helm
+          servicePort: 80
