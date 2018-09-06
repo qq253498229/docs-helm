@@ -2,16 +2,6 @@
 
 本章节介绍了如何快速开始使用Helm。
 
-* link:#先决条件[先决条件]
-* link:#安装Kubernetes或者拥有群集的访问权[安装Kubernetes或者拥有群集的访问权]
-* link:#了解安全上下文[了解安全上下文]
-* link:#安装Helm[安装Helm]
-* link:#初始化Helm并安装Tiller[初始化Helm并安装Tiller]
-* link:#安装Chart示例[安装Chart示例]
-* link:#了解版本[了解版本]
-* link:#卸载一个版本[卸载一个版本]
-* link:#阅读帮助文本[阅读帮助文本]
-
 == 先决条件
 
 要想成功并且正确安全地使用Helm，需要满足以下先决条件。

@@ -1,4 +1,5 @@
 = Charts
+:toc:
 
 Helm使用名为 _charts_ 的打包格式。
 chart是描述相关Kubernetes资源集的文件集合。
@@ -8,8 +9,6 @@ chart创建为在特定目录树中布置的文件，
 然后可以将它们打包到要部署的版本化档案中。
 
 本文档解释了chart格式，并提供了使用Helm构建chart的基本指导。
-
-* link:#Chart的文件结构[Chart的文件结构]
 
 == Chart的文件结构
 
@@ -84,7 +83,7 @@ nginx-1.2.3.tgz
 还支持更复杂的语义化版本名称，例如`version: 1.2.3-alpha.1+ef365`。
 但是系统明确禁止非SemVer名称。
 
-*注意:* 虽然Helm 经典的和Deployment Manager在chart方面都非常面向GitHub，但Kubernetes Helm并不依赖或要求GitHub甚至是Git。
+**NOTE** 虽然Helm 经典的和Deployment Manager在chart方面都非常面向GitHub，但Kubernetes Helm并不依赖或要求GitHub甚至是Git。
 因此，它根本不使用Git SHA进行版本控制。
 
 `Chart.yaml`中的`version`字段被许多Helm工具使用，包括CLI和Tiller服务器。
@@ -354,44 +353,44 @@ dependencies:
 
 在上面的例子中，在subchart1的值中`default.data`处找到的值将被导入到父图表值中的`myimports`键，如下所述：
 
-.```yaml
-
-= parent's values.yaml file
+[source,yaml]
+----
+# parent's values.yaml file
 
 myimports:
- myint: 0
- mybool: false
- mystring: "helm rocks!"
+  myint: 0
+  mybool: false
+  mystring: "helm rocks!"
 
-`
-`yaml
+----
 
-= subchart1's values.yaml file
+[source,yaml]
+----
+# subchart1's values.yaml file
 
 default:
- data:
- myint: 999
- mybool: true
+  data:
+    myint: 999
+    mybool: true
 
-[source]
 ----
+
 The parent chart's resulting values would be:
 
+[source,yaml]
 ----
-
-= parent's final values
+# parent's final values
 
 myimports:
- myint: 999
- mybool: true
- mystring: "helm rocks!"
+  myint: 999
+  mybool: true
+  mystring: "helm rocks!"
 
-[source]
 ----
 
 The parent's final values now contains the `myint` and `mybool` fields imported from subchart1.
 
-### Managing Dependencies manually via the `charts/` directory
+=== Managing Dependencies manually via the `charts/` directory
 
 If more control over dependencies is desired, these dependencies can
 be expressed explicitly by copying the dependency charts into the
@@ -405,26 +404,26 @@ For example, if the WordPress chart depends on the Apache chart, the
 Apache chart (of the correct version) is supplied in the WordPress
 chart's `charts/` directory:
 
+[source]
 ----
-
 wordpress:
- Chart.yaml
- requirements.yaml
- # …
- charts/
- apache/
- Chart.yaml
- # …
- mysql/
- Chart.yaml
- # …
-```
+  Chart.yaml
+  requirements.yaml
+  # ...
+  charts/
+    apache/
+      Chart.yaml
+      # ...
+    mysql/
+      Chart.yaml
+      # ...
+----
 
 The example above shows how the WordPress chart expresses its dependency
 on Apache and MySQL by including those charts inside of its `charts/`
 directory.
 
-*TIP:* _To drop a dependency into your `charts/` directory, use the
+**TIP** _To drop a dependency into your `charts/` directory, use the
 `helm fetch` command_
 
 === Operational aspects of using dependencies
@@ -575,7 +574,7 @@ sensitive_.
  (`{{.Capabilities.TillerVersion}}`, and the supported Kubernetes API versions
  (`{{.Capabilities.APIVersions.Has &quot;batch/v1&quot;`)
 
-*NOTE:* Any unknown Chart.yaml fields will be dropped. They will not
+**NOTE** Any unknown Chart.yaml fields will be dropped. They will not
 be accessible inside of the `Chart` object. Thus, Chart.yaml cannot be
 used to pass arbitrarily structured data into the template. The values
 file can be used for that, though.
@@ -624,14 +623,14 @@ storage: "gcs"
 
 Note that only the last field was overridden.
 
-*NOTE:* The default values file included inside of a chart _must_ be named
+**NOTE** The default values file included inside of a chart _must_ be named
 `values.yaml`. But files specified on the command line can be named
 anything.
 
-*NOTE:* If the `--set` flag is used on `helm install` or `helm upgrade`, those
+**NOTE** If the `--set` flag is used on `helm install` or `helm upgrade`, those
 values are simply converted to YAML on the client side.
 
-*NOTE:* If any required entries in the values file exist, they can be declared
+**NOTE** If any required entries in the values file exist, they can be declared
 as required in the chart template by using the link:charts_tips_and_tricks.html['required' function]
 
 Any of these values are then accessible inside of templates using the
