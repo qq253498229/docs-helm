@@ -1,163 +1,141 @@
 # Charts
 
-Helm uses a packaging format called _charts_. A chart is a collection of files
-that describe a related set of Kubernetes resources. A single chart
-might be used to deploy something simple, like a memcached pod, or
-something complex, like a full web app stack with HTTP servers,
-databases, caches, and so on.
+Helm使用名为 _charts_ 的打包格式。
+chart是描述相关Kubernetes资源集的文件集合。
+既可以使用单个chart来部署简单的内容，例如memcached pod，同时也可以是复杂的，例如包含HTTP服务器，数据库，缓存等的完整Web应用程序堆栈。
 
-Charts are created as files laid out in a particular directory tree,
-then they can be packaged into versioned archives to be deployed.
+chart创建为在特定目录树中布置的文件，
+然后可以将它们打包到要部署的版本化档案中。
 
-This document explains the chart format, and provides basic guidance for
-building charts with Helm.
+本文档解释了chart格式，并提供了使用Helm构建chart的基本指导。
 
-## The Chart File Structure
+- [Chart的文件结构](#Chart的文件结构)
 
-A chart is organized as a collection of files inside of a directory. The
-directory name is the name of the chart (without versioning information). Thus,
-a chart describing WordPress would be stored in the `wordpress/` directory.
+## Chart的文件结构
 
-Inside of this directory, Helm will expect a structure that matches this:
+chart是目录内的文件集合。
+目录名称是chart的名称（没有版本控制信息）。
+因此，描述WordPress的chart将存储在 `wordpress/` 目录中。
+
+在这个目录里面，Helm会期望一个下面的结构：
 
 ```
 wordpress/
-  Chart.yaml          # A YAML file containing information about the chart
-  LICENSE             # OPTIONAL: A plain text file containing the license for the chart
-  README.md           # OPTIONAL: A human-readable README file
-  requirements.yaml   # OPTIONAL: A YAML file listing dependencies for the chart
-  values.yaml         # The default configuration values for this chart
-  charts/             # A directory containing any charts upon which this chart depends.
-  templates/          # A directory of templates that, when combined with values,
-                      # will generate valid Kubernetes manifest files.
-  templates/NOTES.txt # OPTIONAL: A plain text file containing short usage notes
+  Chart.yaml          # 包含有关chart信息的YAML文件
+  LICENSE             # 可选：包含chart许可证的纯文本文件
+  README.md           # 可选：高可读的README文件
+  requirements.yaml   # 可选：列出chart依赖关系的YAML文件
+  values.yaml         # 此chart的默认配置values
+  charts/             # 包含此chart所依赖的任何chart的目录
+  templates/          # 模板目录，当与values组合时将生成有效的Kubernetes清单文件。
+  templates/NOTES.txt # 可选：包含简短使用说明的纯文本文件
 ```
 
-Helm reserves use of the `charts/` and `templates/` directories, and of
-the listed file names. Other files will be left as they are.
+Helm保留使用 `charts/` 和 `templates/` 目录以及列出的文件名。
+其他文件将保留原样。
 
-## The Chart.yaml File
+## Chart.yaml文件
 
-The `Chart.yaml` file is required for a chart. It contains the following fields:
+`Chart.yaml` 文件是chart所必须的。 它包含以下字段：
 
 ```yaml
-apiVersion: The chart API version, always "v1" (required)
-name: The name of the chart (required)
-version: A SemVer 2 version (required)
-kubeVersion: A SemVer range of compatible Kubernetes versions (optional)
-description: A single-sentence description of this project (optional)
+apiVersion: chart的API版本, 始终是"v1" (必填)
+name: chart的名字 (必填)
+version: 语义化版本 (必填)
+kubeVersion: 兼容语义化版本的Kubernetes版本 (可选)
+description: 这个项目的单句描述 (可选)
 keywords:
-  - A list of keywords about this project (optional)
-home: The URL of this project's home page (optional)
+  - 关于此项目的关键字列表 (可选)
+home: 该项目主页的URL (可选)
 sources:
-  - A list of URLs to source code for this project (optional)
-maintainers: # (optional)
-  - name: The maintainer's name (required for each maintainer)
-    email: The maintainer's email (optional for each maintainer)
-    url: A URL for the maintainer (optional for each maintainer)
-engine: gotpl # The name of the template engine (optional, defaults to gotpl)
-icon: A URL to an SVG or PNG image to be used as an icon (optional).
-appVersion: The version of the app that this contains (optional). This needn't be SemVer.
-deprecated: Whether this chart is deprecated (optional, boolean)
-tillerVersion: The version of Tiller that this chart requires. This should be expressed as a SemVer range: ">2.0.0" (optional)
+  - 此项目的源代码的URL列表 (可选)
+maintainers: # (可选)
+  - name: 维护者的名字 (每个维护者都必填)
+    email: 维护者的电子邮件 (每个维护者都可选)
+    url: 维护者的URL (每个维护者都可选)
+engine: gotpl # 模板引擎的名称 (可选, 默认是 gotpl)
+icon: 要用作图标的SVG或PNG图像的URL (可选).
+appVersion: 包含的应用版本 (可选). 这里可以不是语义化版本.
+deprecated: 是否弃用此chart (可选, boolean类型)
+tillerVersion: 此chart需要的Tiller版本。 应该是一个语义化版本，范围：">2.0.0" (可选)
 ```
 
-If you are familiar with the `Chart.yaml` file format for Helm Classic, you will
-notice that fields specifying dependencies have been removed. That is because
-the new Chart format expresses dependencies using the `charts/` directory.
+如果您熟悉Helm 经典的`Chart.yaml`文件格式，您会注意到已删除指定依赖项的字段。
+这是因为新的Chart格式使用`charts/`目录表达依赖关系。
 
-Other fields will be silently ignored.
+其他字段将被默认忽略。
 
-### Charts and Versioning
+### Charts和版本
 
-Every chart must have a version number. A version must follow the
-[SemVer 2](http://semver.org/) standard. Unlike Helm Classic, Kubernetes
-Helm uses version numbers as release markers. Packages in repositories
-are identified by name plus version.
+每个chart都必须有版本号。
+版本必须遵循[语义化版本](https://semver.org/lang/zh-CN/)标准。
+与Helm经典的不同，Kubernetes Helm使用版本号作为发布标记。
+存储库中的包由名称和版本标识。
 
-For example, an `nginx` chart whose version field is set to `version:
-1.2.3` will be named:
+例如，将其版本字段设置为`version：1.2.3`的`nginx`chart命名为：
 
 ```
 nginx-1.2.3.tgz
 ```
 
-More complex SemVer 2 names are also supported, such as
-`version: 1.2.3-alpha.1+ef365`. But non-SemVer names are explicitly
-disallowed by the system.
+还支持更复杂的语义化版本名称，例如`version: 1.2.3-alpha.1+ef365`。
+但是系统明确禁止非SemVer名称。
 
-**NOTE:** Whereas Helm Classic and Deployment Manager were both
-very GitHub oriented when it came to charts, Kubernetes Helm does not
-rely upon or require GitHub or even Git. Consequently, it does not use
-Git SHAs for versioning at all.
+**注意:** 虽然Helm 经典的和Deployment Manager在chart方面都非常面向GitHub，但Kubernetes Helm并不依赖或要求GitHub甚至是Git。 
+因此，它根本不使用Git SHA进行版本控制。
 
-The `version` field inside of the `Chart.yaml` is used by many of the
-Helm tools, including the CLI and the Tiller server. When generating a
-package, the `helm package` command will use the version that it finds
-in the `Chart.yaml` as a token in the package name. The system assumes
-that the version number in the chart package name matches the version number in
-the `Chart.yaml`. Failure to meet this assumption will cause an error.
+`Chart.yaml`中的`version`字段被许多Helm工具使用，包括CLI和Tiller服务器。
+生成包时，`helm package`命令将使用它在`Chart.yaml`中找到的版本作为包名中的标记。
+系统假定chart包名称中的版本号与`Chart.yaml`中的版本号匹配。
+不满足此假设将导致错误。
 
-### The appVersion field
+### appVersion字段
 
-Note that the `appVersion` field is not related to the `version` field. It is
-a way of specifying the version of the application. For example, the `drupal`
-chart may have an `appVersion: 8.2.1`, indicating that the version of Drupal
-included in the chart (by default) is `8.2.1`. This field is informational, and
-has no impact on chart version calculations.
+请注意，`appVersion`字段与`version`字段无关。
+这是一种指定应用程序版本的方法。
+例如，`drupal`chart可能有一个版本是`appVersion: 8.2.1`，表示chart中包含的Drupal版本（默认情况下）是`8.2.1`。
+此字段是信息性的，对chart版本计算没有影响。
 
-### Deprecating Charts
+### 弃用Charts
 
-When managing charts in a Chart Repository, it is sometimes necessary to
-deprecate a chart. The optional `deprecated` field in `Chart.yaml` can be used
-to mark a chart as deprecated. If the **latest** version of a chart in the
-repository is marked as deprecated, then the chart as a whole is considered to
-be deprecated. The chart name can later be reused by publishing a newer version
-that is not marked as deprecated. The workflow for deprecating charts, as
-followed by the [kubernetes/charts](https://github.com/kubernetes/charts)
-project is:
-  - Update chart's `Chart.yaml` to mark the chart as deprecated, bumping the
-  version
-  - Release the new chart version in the Chart Repository
-  - Remove the chart from the source repository (e.g. git)
+在chart存储库中管理chart时，有时需要弃用chart。
+`Chart.yaml`中的可选字段`deprecated`可用于将chart标记为已弃用。
+如果存储库中chart的 **最新** 版本标记为已弃用，则会将该chart视为不推荐使用。
+稍后可以通过发布未标记为已弃用的较新版本来重用chart名称。
+弃用chart的工作流程，如[kubernetes/charts](https://github.com/kubernetes/charts)项目所示：
 
-## Chart LICENSE, README and NOTES
+- 更新chart的`Chart.yaml`以将chart标记为已弃用，从而使版本更新
+- 在chart存储库中释放新的chart版本
+- 从源存储库中删除chart（例如git）
 
-Charts can also contain files that describe the installation, configuration, usage and license of a
-chart. A README for a chart should be formatted in Markdown (README.html), and should generally
-contain:
+## Chart的许可证，自述文件和注释文件
 
-- A description of the application or service the chart provides
-- Any prerequisites or requirements to run the chart
-- Descriptions of options in `values.yaml` and default values
-- Any other information that may be relevant to the installation or configuration of the chart
+chart还可以包含描述chart的安装，配置，使用和许可的文件。
+chart的自述文件应格式化为Markdown（README.md），通常应包含：
 
-The chart can also contain a short plain text `templates/NOTES.txt` file that will be printed out
-after installation, and when viewing the status of a release. This file is evaluated as a
-[template](#templates-and-values), and can be used to display usage notes, next steps, or any other
-information relevant to a release of the chart. For example, instructions could be provided for
-connecting to a database, or accessing a web UI. Since this file is printed to STDOUT when running
-`helm install` or `helm status`, it is recommended to keep the content brief and point to the README
-for greater detail.
+- chart提供的应用程序或服务的描述
+- 运行chart的任何先决条件或要求
+- `values.yaml` 中的选项和默认值的描述
+- 可能与chart的安装或配置相关的任何其他信息
+
+该chart还可以包含一个简短的纯文本`templates/NOTES.txt`文件，该文件将在安装后打印出来，并在查看版本的状态时打印出来。
+此文件被评估为[模板](#templates-and-values)，可用于显示使用说明，后续步骤或与chart发布相关的任何其他信息。
+例如，可以提供用于连接到数据库或访问web UI的指令。
+由于在运行`helm install`或`helm status`时将此文件打印到控制台，因此建议保持内容简短并指向README以获取更多详细信息。
 
 ## Chart Dependencies
 
-In Helm, one chart may depend on any number of other charts. 
-These dependencies can be dynamically linked through the `requirements.yaml`
-file or brought in to the `charts/` directory and managed manually. 
+在Helm中，一个chart可能取决于多个的其它的chart。
+这些依赖项可以通过`requirements.yaml`动态链接
+文件或带入`charts/`目录并手动管理。
 
-Although manually managing your dependencies has a few advantages some teams need,
-the preferred method of declaring dependencies is by using a
-`requirements.yaml` file inside of your chart.
+虽然手动管理依赖项具备一些团队需要的优点，但声明依赖项的首选方法仍然是使用chart中的`requirements.yaml`文件。
 
-**Note:** The `dependencies:` section of the `Chart.yaml` from Helm
-Classic has been completely removed.
+**注意：** Helm Classic的`Chart.yaml`的`dependencies:`部分已被完全删除。
+ 
+### 使用`requirements.yaml`管理依赖关系
 
-
-### Managing Dependencies with `requirements.yaml`
-
-A `requirements.yaml` file is a simple file for listing your
-dependencies.
+`requirements.yaml`文件是一个用于列出依赖项的简单文件。
 
 ```yaml
 dependencies:
@@ -169,14 +147,11 @@ dependencies:
     repository: http://another.example.com/charts
 ```
 
-- The `name` field is the name of the chart you want.
-- The `version` field is the version of the chart you want.
-- The `repository` field is the full URL to the chart repository. Note
-  that you must also use `helm repo add` to add that repo locally.
+- `name`字段是您想要的chart的名称。
+- `version`字段是您想要的chart的版本。
+- `repository`字段是chart存储库的完整URL。 请注意，您还必须使用`helm repo add`在本地添加该repo。
 
-Once you have a dependencies file, you can run `helm dependency update`
-and it will use your dependency file to download all the specified
-charts into your `charts/` directory for you.
+一旦你有了一个依赖项文件，就可以运行`helm dependency update`，它将使用你的依赖文件将所有指定的chart下载到你的`charts/`目录中。
 
 ```console
 $ helm dep up foochart
@@ -191,9 +166,8 @@ Downloading apache from repo http://example.com/charts
 Downloading mysql from repo http://another.example.com/charts
 ```
 
-When `helm dependency update` retrieves charts, it will store them as
-chart archives in the `charts/` directory. So for the example above, one
-would expect to see the following files in the charts directory:
+当`helm dependency update`检索chart时，它会将它们存储为`charts/`目录中的chart压缩包。
+因此，对于上面的示例，应该在chart目录中看到以下文件：
 
 ```
 charts/
@@ -201,20 +175,15 @@ charts/
   mysql-3.2.1.tgz
 ```
 
-Managing charts with `requirements.yaml` is a good way to easily keep
-charts updated, and also share requirements information throughout a
-team.
+使用`requirements.yaml`管理chart是一种很容易保持chart更新速度的好方法，也可以在整个团队中共享需求信息。
 
-#### Alias field in requirements.yaml
+#### requirements.yaml中的Alias字段
 
-In addition to the other fields above, each requirements entry may contain
-the optional field `alias`.
+除了上面的其他字段之外，每个需求条目还可以包含可选字段`alias`。
 
-Adding an alias for a dependency chart would put
-a chart in dependencies using alias as name of new dependency.
+为依赖关系chart添加别名会使用别名作为新依赖关系的名称将chart放在依赖关系中。
 
-One can use `alias` in cases where they need to access a chart
-with other name(s).
+如果需要使用其他名称访问chart，可以使用`alias`。
 
 ```yaml
 # parentchart/requirements.yaml
@@ -232,32 +201,29 @@ dependencies:
     version: 0.1.0
 ```
 
-In the above example we will get 3 dependencies in all for `parentchart`
+在上面的例子中，`parentchart`获得3个依赖项
+
 ```
 subchart
 new-subchart-1
 new-subchart-2
 ```
 
-The manual way of achieving this is by copy/pasting the same chart in the
-`charts/` directory multiple times with different names.
+实现此目的的手动方法是使用不同的名称多次复制/粘贴`charts/`目录中的相同chart。
 
-#### Tags and Condition fields in requirements.yaml
+#### requirements.yaml中的Tags和Condition字段
 
-In addition to the other fields above, each requirements entry may contain
-the optional fields `tags` and `condition`.
+除了上面的其他字段之外，每个需求条目还可以使用可选字段`tags`和`condition`。
 
-All charts are loaded by default. If `tags` or `condition` fields are present,
-they will be evaluated and used to control loading for the chart(s) they are applied to.
+默认情况下会加载所有chart。
+如果存在`tags`或`condition`字段，它们将被评估并用于控制它们所应用的chart的加载。
 
-Condition - The condition field holds one or more YAML paths (delimited by commas).
-If this path exists in the top parent's values and resolves to a boolean value,
-the chart will be enabled or disabled based on that boolean value.  Only the first
-valid path found in the list is evaluated and if no paths exist then the condition has no effect.
+Condition - 条件字段包含一个或多个YAML路径（以逗号分隔）。
+如果此路径存在于顶级父级的值中并解析为布尔值，则将根据该布尔值启用或禁用该chart。
+仅评估列表中找到的第一个有效路径，如果不存在路径，则该条件无效。
 
-Tags - The tags field is a YAML list of labels to associate with this chart.
-In the top parent's values, all charts with tags can be enabled or disabled by
-specifying the tag and a boolean value.
+Tags - 标签字段是与此chart关联的标签的YAML列表。
+在顶级父级的值中，可以通过指定标记和布尔值来启用或禁用所有带标记的chart。
 
 ````
 # parentchart/requirements.yaml
@@ -277,8 +243,8 @@ dependencies:
         tags:
           - back-end
           - subchart2
-
 ````
+
 ````
 # parentchart/values.yaml
 
@@ -289,48 +255,40 @@ tags:
   back-end: true
 ````
 
-In the above example all charts with the tag `front-end` would be disabled but since the
-`subchart1.enabled` path evaluates to 'true' in the parent's values, the condition will override the
-`front-end` tag and `subchart1` will be enabled.  
+在上面的示例中，所有带有`front-end`标签的chart都将被禁用，但由于`subchart1.enabled`路径在父值的值中评估为'true'，条件将覆盖`front-end`标签,`subchart1`将被启用。
 
-Since `subchart2` is tagged with `back-end` and that tag evaluates to `true`, `subchart2` will be
-enabled. Also notes that although `subchart2` has a condition specified in `requirements.yaml`, there
-is no corresponding path and value in the parent's values so that condition has no effect.  
+由于`subchart2`被标记为`back-end`并且该标签评估为`true`，因此将启用`subchart2`。
+另请注意，虽然`subchart2`具有`requirements.yaml`中指定的条件，但父项的值中没有相应的路径和值，因此条件无效。
 
-##### Using the CLI with Tags and Conditions
+##### 使用带有标签和条件的CLI
 
-The `--set` parameter can be used as usual to alter tag and condition values.
+可以像往常一样使用`--set`参数来修改标记和条件值。
 
 ````
 helm install --set tags.front-end=true --set subchart2.enabled=false
 ````
 
-##### Tags and Condition Resolution
+##### 标签和条件解决方案
 
+* **Conditions（在values中设置时）始终覆盖tags。** 忽略存在的第一个条件路径和该chart的后续条件路径。
+* 标签被评估为'如果任何chart的标签为真，则启用chart'。
+* 标签和条件值必须在顶级父级的值中设置。
+* 值中的`tags:`键必须是顶级键。 全局和嵌套`tags:`表目前不受支持。
 
-  * **Conditions (when set in values) always override tags.** The first condition
-    path that exists wins and subsequent ones for that chart are ignored.
-  * Tags are evaluated as 'if any of the chart's tags are true then enable the chart'.
-  * Tags and conditions values must be set in the top parent's values.
-  * The `tags:` key in values must be a top level key. Globals and nested `tags:` tables
-    are not currently supported.
+#### 通过requirements.yaml导入子值
 
-#### Importing Child Values via requirements.yaml
+在某些情况下，可能希望允许子chart的值传播到父chart并可以作为常见默认值共享。
+使用`exports`格式的另一个好处是，它将使未来的工具能够内省用户可设置的值。
 
-In some cases it is desirable to allow a child chart's values to propagate to the parent chart and be 
-shared as common defaults. An additional benefit of using the `exports` format is that it will enable future 
-tooling to introspect user-settable values.
+可以使用YAML列表在父chart的`requirements.yaml`文件中指定包含要导入的值的键。
+列表中的每个项目都是从子chart的`exports`字段导入的键。
 
-The keys containing the values to be imported can be specified in the parent chart's `requirements.yaml` file 
-using a YAML list. Each item in the list is a key which is imported from the child chart's `exports` field. 
+要导入未包含在`exports`键中的值，请使用[child-parent](#using-the-child-parent-format)格式。
+两种格式的示例如下所述。
 
-To import values not contained in the `exports` key, use the [child-parent](#using-the-child-parent-format) format.
-Examples of both formats are described below.
+##### 使用导出格式
 
-##### Using the exports format
-
-If a child chart's `values.yaml` file contains an `exports` field at the root, its contents may be imported 
-directly into the parent's values by specifying the keys to import as in the example below:
+如果子chart的`values.yaml`文件在根节点中包含`exports`字段，则可以通过指定要导入的键将其内容直接导入父值的值，如下例所示：
 
 ```yaml
 # parent's requirements.yaml file
@@ -346,10 +304,9 @@ exports:
     myint: 99
 ```
 
-Since we are specifying the key `data` in our import list, Helm looks in the `exports` field of the child 
-chart for `data` key and imports its contents. 
+由于我们在导入列表中指定了键`data`，因此Helm在子chart的`exports`字段中查找`data`键并导入其内容。
 
-The final parent values would contain our exported field:
+最终的父值将包含我们的导出字段：
 
 ```yaml
 # parent's values file
@@ -358,17 +315,14 @@ myint: 99
 
 ```
 
-Please note the parent key `data` is not contained in the parent's final values. If you need to specify the 
-parent key, use the 'child-parent' format. 
+请注意，父键的`data`不包含在父项的最终值中。
+如果需要指定父键，请使用'child-parent'的格式。
 
-##### Using the child-parent format
+##### 使用child-parent的格式
 
-To access values that are not contained in the `exports` key of the child chart's values, you will need to 
-specify the source key of the values to be imported (`child`) and the destination path in the parent chart's 
-values (`parent`).
+要访问未包含在子chart值的`exports`键中的值，您需要指定要导入的值的源键（`child`）和父chart值中的目标路径（`parent`）。
 
-The `import-values` in the example below instructs Helm to take any values found at `child:` path and copy them 
-to the parent's values at the path specified in `parent:`
+下面示例中的`import-values`指示Helm获取在`child:`路径中找到的任何值，并将它们复制到`parent:`中指定的路径的父值。
 
 ```yaml
 # parent's requirements.yaml file
@@ -381,10 +335,10 @@ dependencies:
       - child: default.data
         parent: myimports
 ```
-In the above example, values found at `default.data` in the subchart1's values will be imported
-to the `myimports` key in the parent chart's values as detailed below: 
 
-```yaml
+在上面的例子中，在subchart1的值中`default.data`处找到的值将被导入到父图表值中的`myimports`键，如下所述：
+
+.```yaml
 # parent's values.yaml file
 
 myimports:
