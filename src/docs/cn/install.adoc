@@ -1,32 +1,11 @@
 = 安装 Helm
+大胃王 <codeforfun@foxmail.cn>
+:toc:
 
 Helm由两部分组成：Helm客户端（`helm`）和Helm服务端（Tiller）。
 本指南介绍如何安装客户端，为您介绍两种安装服务器的方法。
 
 *重要*: 如果您负责的群集是受控环境，尤其是在共享资源时，强烈建议使用安全配置的方式安装Tiller。 相关指导，请查看link:securing_installation.html[安全方式安装Helm]。
-
-* link:#安装Helm客户端[安装Helm客户端]
-* link:#从二进制版本安装[从二进制版本安装]
-* [从Snap(Linux)包管理器安装](#从Snap(Linux)包管理器安装)
-* [从Homebrew(macOS)安装](#从Homebrew(macOS)安装)
-* [从Chocolatey(Windows)安装](#从Chocolatey(Windows)安装)
-* link:#脚本安装[脚本安装]
-* link:#从Canary构建[从Canary构建]
-* [从源码(Linux, macOS)安装](#从源码(Linux,macOS)安装)
-* link:#安装Tiller[安装Tiller]
-* link:#一个简单的集群内安装方式[一个简单的集群内安装方式]
-* link:#安装TillerCanary构建[安装TillerCanary构建]
-* link:#在本地安装Tiller[在本地安装Tiller]
-* link:#更新Tiller[更新Tiller]
-* link:#删除或重新安装Tiller[删除或重新安装Tiller]
-* link:#高级用法[高级用法]
-* link:#使用NodeSelectors选项[使用node-selectors选项]
-* link:#使用override选项[使用override选项]
-** link:#Override解释[Override解释]
-** link:#Override设置关联属性[Override设置关联属性]
-* link:#Output选项的使用[Output选项的使用]
-* link:#存储后端[存储后端]
-* link:#结论[结论]
 
 == 安装Helm客户端
 
@@ -34,18 +13,18 @@ Helm客户端既可以从源代码安装，也可以从预构建的二进制版�
 
 === 从二进制版本安装
 
-Helm的每个https://github.com/kubernetes/helm/releases[release]版本都会为各种操作系统提供二进制版本。
+Helm的每个 https://github.com/kubernetes/helm/releases[release] 版本都会为各种操作系统提供二进制版本。
 可以手动下载并安装这些二进制版本。
 
-. 下载https://github.com/kubernetes/helm/releases[您所需的版本]
+. 下载 https://github.com/kubernetes/helm/releases[您所需的版本]
 . 把它解压 (`tar -zxvf helm-v2.0.0-linux-amd64.tgz`)
-. 在解压缩之后的目录中找到`helm`这个二进制文件，并将其移动到所需的目标位置 (`mv linux-amd64/helm /usr/local/bin/helm`)
+. 在解压缩之后的目录中找到 `helm` 这个二进制文件，并将其移动到所需的目标位置 (`mv linux-amd64/helm /usr/local/bin/helm`)
 
 在这之后，您就可以运行客户端命令了：`helm help`。
 
 === 从Snap(Linux)包管理器安装
 
-Helm的Snap包由https://github.com/snapcrafters/helm[Snapcrafters]维护。
+Helm的Snap包由 https://github.com/snapcrafters/helm[Snapcrafters]维护。
 
 [source]
 ----
@@ -66,7 +45,7 @@ brew install kubernetes-helm
 
 === 从Chocolatey(Windows)安装
 
-Kubernetes的社区成员为https://chocolatey.org/[Chocolatey]贡献了https://chocolatey.org/packages/kubernetes-helm[Helm包]。
+Kubernetes的社区成员为 https://chocolatey.org/[Chocolatey]贡献了 https://chocolatey.org/packages/kubernetes-helm[Helm包]。
 这种安装方式一般来讲是最新版本的。
 
 [source]
@@ -76,7 +55,7 @@ choco install kubernetes-helm
 
 == 脚本安装
 
-Helm有一个安装程序脚本，它将自动获取最新版本的Helm客户端并https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get[install it locally]。
+Helm有一个安装程序脚本，它将自动获取最新版本的Helm客户端并 https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get[在本地安装]。
 
 您可以获取该脚本，然后在本地执行它。
 它有一份非常详细的文档，因此您可以在运行之前仔细阅读并了解它的使用方法。
@@ -92,10 +71,10 @@ $ ./get_helm.sh
 
 === 从Canary构建
 
-“Canary” 是Helm的一个分支版本，它是从Helm最新的master创建出来的分支构建的。
+`Canary` 是Helm的一个分支版本，它是从Helm最新的master创建出来的分支构建的。
 它不是正式版本，可能不稳定。 但是，它们提供了测试前沿功能的机会。
 
-Canary Helm二进制文件存储在https://kubernetes-helm.storage.googleapis.com[Kubernetes Helm GCS bucket]中。
+Canary Helm二进制文件存储在 https://kubernetes-helm.storage.googleapis.com[Kubernetes Helm GCS bucket]中。
 以下是常见版本的链接：
 
 * https://kubernetes-helm.storage.googleapis.com/helm-canary-linux-amd64.tar.gz[Linux AMD64]
@@ -106,7 +85,7 @@ Canary Helm二进制文件存储在https://kubernetes-helm.storage.googleapis.co
 
 从源代码构建Helm会稍微多一些工作，但如果你想测试最新的（预发布）Helm版本，这是最好的方法。
 
-您必须安装https://github.com/Masterminds/glide[glide]才能使用Go环境。
+您必须安装 https://github.com/Masterminds/glide[glide]才能使用Go环境。
 
 [source,console]
 ----
@@ -118,10 +97,10 @@ $ cd helm
 $ make bootstrap build
 ----
 
-`bootstrap`会尝试安装依赖项，重建`vendor/`树，并验证配置。
+`bootstrap` 会尝试安装依赖项，重建 `vendor/` 树，并验证配置。
 
-`build`会编译`helm`并将其放在`bin/helm`中。
-Tiller也会被编译，并被放置在`bin/tiller`中。
+`build` 会编译 `helm` 并将其放在 `bin/helm` 中。
+Tiller也会被编译，并被放置在 `bin/tiller` 中。
 
 == 安装Tiller
 
@@ -144,7 +123,7 @@ Tiller是Helm的服务的一部分，通常在您的Kubernetes集群内部运行
 * 使用 `--tiller-image` 选项指定tiller的镜像(版本)
 * 使用 `--kube-context` 选项指定Kubernetes集群上下文
 * 使用 `--tiller-namespace` 选项指定命名空间
-* 使用 `--service-account` 选项指定服务帐户（用于link:securing_installation.md#rbac[为集群启用RBAC(基于角色的访问控制)]）
+* 使用 `--service-account` 选项指定服务帐户（用于 link:securing_installation.md#rbac[为集群启用RBAC(基于角色的访问控制)]）
 
 一旦Tiller安装完成，运行 `helm version` 就会显示客户端和服务端版本。
 (如果它只显示客户端版本, `helm` 仍然无法连接到服务器。使用 `kubectl` 查看是否有任何 `tiller` pod正在运行。)
@@ -257,7 +236,7 @@ spec:
 === 使用override选项
 
 `--override` 允许您指定 Tiller 部署清单的属性。
-与 Helm 中其他地方使用的 `--set` 命令不同， `helm init --override` 操做最终清单的指定属性（没有"values"文件）。
+与 Helm 中其他地方使用的 `--set` 命令不同， `helm init --override` 操做最终清单的指定属性（没有 `values` 文件）。
 
 因此，您可以为部署清单中的任何有效属性指定任何有效值。
 
@@ -292,7 +271,7 @@ metadata:
 helm init --override "spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight"="1" --override "spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key"="e2e-az-name"
 ----
 
-所指定的属性将合并到 "preferredDuringSchedulingIgnoredDuringExecution" 列表项的第一个属性中。
+所指定的属性将合并到 `preferredDuringSchedulingIgnoredDuringExecution` 列表项的第一个属性中。
 
 [source]
 ----
@@ -316,7 +295,7 @@ spec:
 === Output选项的使用
 
 `--output` 选项允许我们跳过 Tiller 部署清单的安装，而只是将部署清单以JSON或YAML格式输出。
-可以使用`jq`等工具修改输出，然后使用`kubectl`手动安装。
+可以使用 `jq` 等工具修改输出，然后使用 `kubectl` 手动安装。
 
 在下面的示例中，我们使用 `--output json` 选项执行 `helm init` 。
 

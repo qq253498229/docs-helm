@@ -1,4 +1,6 @@
 = 快速开始
+大胃王 <codeforfun@foxmail.cn>
+:toc:
 
 本章节介绍了如何快速开始使用Helm。
 
@@ -13,7 +15,7 @@
 === 安装Kubernetes或者拥有群集的访问权
 
 * 您必须提前安装Kubernetes。 对于Helm的最新版本，我们推荐Kubernetes的最新稳定版本，在大多数情况下是最新的次要版本。
-* 您还应该有一个本地配置的`kubectl`副本。
+* 您还应该有一个本地配置的 `kubectl` 副本。
 
 注意：Kubernetes1.6版本之前对基于角色的访问控制（RBAC）的支持有限或不支持。
 
@@ -22,7 +24,7 @@ Helm会通过读取您的Kubernetes配置文件（通常是 `$HOME/.kube/config`
 
 要找出Tiller将安装到哪个群集，您可以运行
 
-`kubectl config current-context` 或 `kubectl cluster-info`.
+`kubectl config current-context` 或 `kubectl cluster-info` .
 
 结果如下：
 
@@ -113,7 +115,7 @@ $ helm delete smiling-penguin
 Removed smiling-penguin
 ----
 
-这将从Kubernetes中卸载`smiling-penguin`，但您仍然可以查看有关该版本的信息：
+这将从Kubernetes中卸载 `smiling-penguin` ，但您仍然可以查看有关该版本的信息：
 
 [source,console]
 ----
@@ -122,11 +124,11 @@ Status: DELETED
 ...
 ----
 
-因为Helm会在您删除它们后跟踪它们，所以您仍然可以查看集群的历史记录，甚至取消删除一个版本（使用`helm rollback`）。
+因为Helm会在您删除它们后跟踪它们，所以您仍然可以查看集群的历史记录，甚至取消删除一个版本（使用 `helm rollback` ）。
 
 == 阅读帮助文本
 
-要了解有关可用Helm命令的更多信息，请使用`helm help`，或在输入一个命令后，加上`-h`标志：
+要了解有关可用Helm命令的更多信息，请使用 `helm help` ，或在输入一个命令后，加上 `-h` 标志：
 
 [source,console]
 ----

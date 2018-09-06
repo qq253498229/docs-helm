@@ -1,8 +1,6 @@
 = Helm 文档中文翻译
 大胃王 <codeforfun@foxmail.cn>
-2018-08
 :toc:
-:toclevels: 5
 
 * link:quickstart.html[快速开始] - 先读我!
 * link:install.html[安装Helm] - 安装 Helm 和 Tiller
