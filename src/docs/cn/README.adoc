@@ -1,0 +1,37 @@
+= Helm 文档中文翻译
+
+* link:quickstart.html[快速开始] - 先读我!
+* link:install.html[安装Helm] - 安装 Helm 和 Tiller
+* link:kubernetes_distros.html[(待完成)Kubernetes贡献指南]
+* link:install_faq.html[(待完成)常见问题]
+* link:using_helm.html[使用Helm] - 学习 Helm 的工具
+* link:plugins.html[(待完成)插件]
+* link:rbac.html[(待完成)基于角色的访问控制]
+* link:tiller_ssl.html[(待完成)TLS/SSL for Helm and Tiller] - 使用 Helm-to-Tiller 加密
+* link:charts.html[(待完成)Charts开发] - Chart 开发简介
+** link:charts_hooks.html[(待完成)Chart生命周期钩子]
+** link:charts_tips_and_tricks.html[(待完成)Chart提示和技巧]
+** link:chart_repository.html[(待完成)Chart Repository 指南]
+** link:chart_repository_sync_example.html[(待完成)同步您的 Chart Repository]
+** link:provenance.html[(待完成)Charts 的签名]
+** link:chart_tests.html[(待完成)为 Charts 编写测试]
+* link:chart_template_guide/index.html[(待完成)Chart 模板开发人员指南] - Master Helm 模板
+* link:chart_template_guide/getting_started.html[(待完成)模板入门]
+* link:chart_template_guide/builtin_objects.html[(待完成)内置对象]
+* link:chart_template_guide/values_files.html[(待完成)Values 文件]
+* link:chart_template_guide/functions_and_pipelines.html[(待完成)Functions 和 Pipelines]
+* link:chart_template_guide/control_structures.html[(待完成)流量控制 (if/else, with, range, whitespace management)]
+* link:chart_template_guide/variables.html[(待完成)变量]
+* link:chart_template_guide/named_templates.html[(待完成)命名模板（部分）]
+* link:chart_template_guide/accessing_files.html[(待完成)访问模板内的文件]
+* link:chart_template_guide/notes_files.html[(待完成)创建 NOTES.txt 文件]
+* link:chart_template_guide/subcharts_and_globals.html[(待完成)子charts 和 全局 Values]
+* link:chart_template_guide/debugging.html[(待完成)调试模板]
+* link:chart_template_guide/wrapping_up.html[(待完成)打包]
+* link:chart_template_guide/yaml_techniques.html[(待完成)附录A：YAML技术]
+* link:chart_template_guide/data_types.html[(待完成)附录B: Go语言数据类型]
+* link:related.html[(待完成)相关项目] - 更多Helm工具，文章和插件
+* link:architecture.html[(待完成)架构] - Helm / Tiller设计概述
+* link:developers.html[(待完成)开发人员] - 开发人员相关
+* link:history.html[(待完成)历史] - 项目简史
+* link:glossary.html[(待完成)词汇表] - 解释Helm的词汇

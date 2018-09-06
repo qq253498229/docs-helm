@@ -1,0 +1,844 @@
+= Charts
+
+Helm使用名为 _charts_ 的打包格式。
+chart是描述相关Kubernetes资源集的文件集合。
+既可以使用单个chart来部署简单的内容，例如memcached pod，同时也可以是复杂的，例如包含HTTP服务器，数据库，缓存等的完整Web应用程序堆栈。
+
+chart创建为在特定目录树中布置的文件，
+然后可以将它们打包到要部署的版本化档案中。
+
+本文档解释了chart格式，并提供了使用Helm构建chart的基本指导。
+
+* link:#Chart的文件结构[Chart的文件结构]
+
+== Chart的文件结构
+
+chart是目录内的文件集合。
+目录名称是chart的名称（没有版本控制信息）。
+因此，描述WordPress的chart将存储在 `wordpress/` 目录中。
+
+在这个目录里面，Helm会期望一个下面的结构：
+
+[source]
+----
+wordpress/
+  Chart.yaml          # 包含有关chart信息的YAML文件
+  LICENSE             # 可选：包含chart许可证的纯文本文件
+  README.md           # 可选：高可读的README文件
+  requirements.yaml   # 可选：列出chart依赖关系的YAML文件
+  values.yaml         # 此chart的默认配置values
+  charts/             # 包含此chart所依赖的任何chart的目录
+  templates/          # 模板目录，当与values组合时将生成有效的Kubernetes清单文件。
+  templates/NOTES.txt # 可选：包含简短使用说明的纯文本文件
+----
+
+Helm保留使用 `charts/` 和 `templates/` 目录以及列出的文件名。
+其他文件将保留原样。
+
+== Chart.yaml文件
+
+`Chart.yaml` 文件是chart所必须的。 它包含以下字段：
+
+[source,yaml]
+----
+apiVersion: chart的API版本, 始终是"v1" (必填)
+name: chart的名字 (必填)
+version: 语义化版本 (必填)
+kubeVersion: 兼容语义化版本的Kubernetes版本 (可选)
+description: 这个项目的单句描述 (可选)
+keywords:
+  - 关于此项目的关键字列表 (可选)
+home: 该项目主页的URL (可选)
+sources:
+  - 此项目的源代码的URL列表 (可选)
+maintainers: # (可选)
+  - name: 维护者的名字 (每个维护者都必填)
+    email: 维护者的电子邮件 (每个维护者都可选)
+    url: 维护者的URL (每个维护者都可选)
+engine: gotpl # 模板引擎的名称 (可选, 默认是 gotpl)
+icon: 要用作图标的SVG或PNG图像的URL (可选).
+appVersion: 包含的应用版本 (可选). 这里可以不是语义化版本.
+deprecated: 是否弃用此chart (可选, boolean类型)
+tillerVersion: 此chart需要的Tiller版本。 应该是一个语义化版本，范围：">2.0.0" (可选)
+----
+
+如果您熟悉Helm 经典的`Chart.yaml`文件格式，您会注意到已删除指定依赖项的字段。
+这是因为新的Chart格式使用`charts/`目录表达依赖关系。
+
+其他字段将被默认忽略。
+
+=== Charts和版本
+
+每个chart都必须有版本号。
+版本必须遵循https://semver.org/lang/zh-CN/[语义化版本]标准。
+与Helm经典的不同，Kubernetes Helm使用版本号作为发布标记。
+存储库中的包由名称和版本标识。
+
+例如，将其版本字段设置为`version：1.2.3`的`nginx`chart命名为：
+
+[source]
+----
+nginx-1.2.3.tgz
+----
+
+还支持更复杂的语义化版本名称，例如`version: 1.2.3-alpha.1+ef365`。
+但是系统明确禁止非SemVer名称。
+
+*注意:* 虽然Helm 经典的和Deployment Manager在chart方面都非常面向GitHub，但Kubernetes Helm并不依赖或要求GitHub甚至是Git。
+因此，它根本不使用Git SHA进行版本控制。
+
+`Chart.yaml`中的`version`字段被许多Helm工具使用，包括CLI和Tiller服务器。
+生成包时，`helm package`命令将使用它在`Chart.yaml`中找到的版本作为包名中的标记。
+系统假定chart包名称中的版本号与`Chart.yaml`中的版本号匹配。
+不满足此假设将导致错误。
+
+=== appVersion字段
+
+请注意，`appVersion`字段与`version`字段无关。
+这是一种指定应用程序版本的方法。
+例如，`drupal`chart可能有一个版本是`appVersion: 8.2.1`，表示chart中包含的Drupal版本（默认情况下）是`8.2.1`。
+此字段是信息性的，对chart版本计算没有影响。
+
+=== 弃用Charts
+
+在chart存储库中管理chart时，有时需要弃用chart。
+`Chart.yaml`中的可选字段`deprecated`可用于将chart标记为已弃用。
+如果存储库中chart的 *最新* 版本标记为已弃用，则会将该chart视为不推荐使用。
+稍后可以通过发布未标记为已弃用的较新版本来重用chart名称。
+弃用chart的工作流程，如https://github.com/kubernetes/charts[kubernetes/charts]项目所示：
+
+* 更新chart的`Chart.yaml`以将chart标记为已弃用，从而使版本更新
+* 在chart存储库中释放新的chart版本
+* 从源存储库中删除chart（例如git）
+
+== Chart的许可证，自述文件和注释文件
+
+chart还可以包含描述chart的安装，配置，使用和许可的文件。
+chart的自述文件应格式化为Markdown（README.md），通常应包含：
+
+* chart提供的应用程序或服务的描述
+* 运行chart的任何先决条件或要求
+* `values.yaml` 中的选项和默认值的描述
+* 可能与chart的安装或配置相关的任何其他信息
+
+该chart还可以包含一个简短的纯文本`templates/NOTES.txt`文件，该文件将在安装后打印出来，并在查看版本的状态时打印出来。
+此文件被评估为link:#templates-and-values[模板]，可用于显示使用说明，后续步骤或与chart发布相关的任何其他信息。
+例如，可以提供用于连接到数据库或访问web UI的指令。
+由于在运行`helm install`或`helm status`时将此文件打印到控制台，因此建议保持内容简短并指向README以获取更多详细信息。
+
+== Chart Dependencies
+
+在Helm中，一个chart可能取决于多个的其它的chart。
+这些依赖项可以通过`requirements.yaml`动态链接
+文件或带入`charts/`目录并手动管理。
+
+虽然手动管理依赖项具备一些团队需要的优点，但声明依赖项的首选方法仍然是使用chart中的`requirements.yaml`文件。
+
+*注意：* Helm Classic的`Chart.yaml`的`dependencies:`部分已被完全删除。
+
+=== 使用`requirements.yaml`管理依赖关系
+
+`requirements.yaml`文件是一个用于列出依赖项的简单文件。
+
+[source,yaml]
+----
+dependencies:
+  - name: apache
+    version: 1.2.3
+    repository: http://example.com/charts
+  - name: mysql
+    version: 3.2.1
+    repository: http://another.example.com/charts
+----
+
+* `name`字段是您想要的chart的名称。
+* `version`字段是您想要的chart的版本。
+* `repository`字段是chart存储库的完整URL。 请注意，您还必须使用`helm repo add`在本地添加该repo。
+
+一旦你有了一个依赖项文件，就可以运行`helm dependency update`，它将使用你的依赖文件将所有指定的chart下载到你的`charts/`目录中。
+
+[source,console]
+----
+$ helm dep up foochart
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "local" chart repository
+...Successfully got an update from the "stable" chart repository
+...Successfully got an update from the "example" chart repository
+...Successfully got an update from the "another" chart repository
+Update Complete. Happy Helming!
+Saving 2 charts
+Downloading apache from repo http://example.com/charts
+Downloading mysql from repo http://another.example.com/charts
+----
+
+当`helm dependency update`检索chart时，它会将它们存储为`charts/`目录中的chart压缩包。
+因此，对于上面的示例，应该在chart目录中看到以下文件：
+
+[source]
+----
+charts/
+  apache-1.2.3.tgz
+  mysql-3.2.1.tgz
+----
+
+使用`requirements.yaml`管理chart是一种很容易保持chart更新速度的好方法，也可以在整个团队中共享需求信息。
+
+==== requirements.yaml中的Alias字段
+
+除了上面的其他字段之外，每个需求条目还可以包含可选字段`alias`。
+
+为依赖关系chart添加别名会使用别名作为新依赖关系的名称将chart放在依赖关系中。
+
+如果需要使用其他名称访问chart，可以使用`alias`。
+
+[source,yaml]
+----
+# parentchart/requirements.yaml
+dependencies:
+  - name: subchart
+    repository: http://localhost:10191
+    version: 0.1.0
+    alias: new-subchart-1
+  - name: subchart
+    repository: http://localhost:10191
+    version: 0.1.0
+    alias: new-subchart-2
+  - name: subchart
+    repository: http://localhost:10191
+    version: 0.1.0
+----
+
+在上面的例子中，`parentchart`获得3个依赖项
+
+[source]
+----
+subchart
+new-subchart-1
+new-subchart-2
+----
+
+实现此目的的手动方法是使用不同的名称多次复制/粘贴`charts/`目录中的相同chart。
+
+==== requirements.yaml中的Tags和Condition字段
+
+除了上面的其他字段之外，每个需求条目还可以使用可选字段`tags`和`condition`。
+
+默认情况下会加载所有chart。
+如果存在`tags`或`condition`字段，它们将被评估并用于控制它们所应用的chart的加载。
+
+Condition - 条件字段包含一个或多个YAML路径（以逗号分隔）。
+如果此路径存在于顶级父级的值中并解析为布尔值，则将根据该布尔值启用或禁用该chart。
+仅评估列表中找到的第一个有效路径，如果不存在路径，则该条件无效。
+
+Tags - 标签字段是与此chart关联的标签的YAML列表。
+在顶级父级的值中，可以通过指定标记和布尔值来启用或禁用所有带标记的chart。
+
+[source]
+----
+# parentchart/requirements.yaml
+dependencies:
+      - name: subchart1
+        repository: http://localhost:10191
+        version: 0.1.0
+        condition: subchart1.enabled,global.subchart1.enabled
+        tags:
+          - front-end
+          - subchart1
+
+      - name: subchart2
+        repository: http://localhost:10191
+        version: 0.1.0
+        condition: subchart2.enabled,global.subchart2.enabled
+        tags:
+          - back-end
+          - subchart2
+----
+
+[source]
+----
+# parentchart/values.yaml
+
+subchart1:
+  enabled: true
+tags:
+  front-end: false
+  back-end: true
+----
+
+在上面的示例中，所有带有`front-end`标签的chart都将被禁用，但由于`subchart1.enabled`路径在父值的值中评估为'true'，条件将覆盖`front-end`标签,`subchart1`将被启用。
+
+由于`subchart2`被标记为`back-end`并且该标签评估为`true`，因此将启用`subchart2`。
+另请注意，虽然`subchart2`具有`requirements.yaml`中指定的条件，但父项的值中没有相应的路径和值，因此条件无效。
+
+===== 使用带有标签和条件的CLI
+
+可以像往常一样使用`--set`参数来修改标记和条件值。
+
+[source]
+----
+helm install --set tags.front-end=true --set subchart2.enabled=false
+----
+
+===== 标签和条件解决方案
+
+* *Conditions（在values中设置时）始终覆盖tags。* 忽略存在的第一个条件路径和该chart的后续条件路径。
+* 标签被评估为'如果任何chart的标签为真，则启用chart'。
+* 标签和条件值必须在顶级父级的值中设置。
+* 值中的`tags:`键必须是顶级键。 全局和嵌套`tags:`表目前不受支持。
+
+==== 通过requirements.yaml导入子值
+
+在某些情况下，可能希望允许子chart的值传播到父chart并可以作为常见默认值共享。
+使用`exports`格式的另一个好处是，它将使未来的工具能够内省用户可设置的值。
+
+可以使用YAML列表在父chart的`requirements.yaml`文件中指定包含要导入的值的键。
+列表中的每个项目都是从子chart的`exports`字段导入的键。
+
+要导入未包含在`exports`键中的值，请使用link:#using-the-child-parent-format[child-parent]格式。
+两种格式的示例如下所述。
+
+===== 使用导出格式
+
+如果子chart的`values.yaml`文件在根节点中包含`exports`字段，则可以通过指定要导入的键将其内容直接导入父值的值，如下例所示：
+
+[source,yaml]
+----
+# parent's requirements.yaml file
+    ...
+    import-values:
+      - data
+----
+
+[source,yaml]
+----
+# child's values.yaml file
+...
+exports:
+  data:
+    myint: 99
+----
+
+由于我们在导入列表中指定了键`data`，因此Helm在子chart的`exports`字段中查找`data`键并导入其内容。
+
+最终的父值将包含我们的导出字段：
+
+[source,yaml]
+----
+# parent's values file
+...
+myint: 99
+
+----
+
+请注意，父键的`data`不包含在父项的最终值中。
+如果需要指定父键，请使用'child-parent'的格式。
+
+===== 使用child-parent的格式
+
+要访问未包含在子chart值的`exports`键中的值，您需要指定要导入的值的源键（`child`）和父chart值中的目标路径（`parent`）。
+
+下面示例中的`import-values`指示Helm获取在`child:`路径中找到的任何值，并将它们复制到`parent:`中指定的路径的父值。
+
+[source,yaml]
+----
+# parent's requirements.yaml file
+dependencies:
+  - name: subchart1
+    repository: http://localhost:10191
+    version: 0.1.0
+    ...
+    import-values:
+      - child: default.data
+        parent: myimports
+----
+
+在上面的例子中，在subchart1的值中`default.data`处找到的值将被导入到父图表值中的`myimports`键，如下所述：
+
+.```yaml
+
+= parent's values.yaml file
+
+myimports:
+ myint: 0
+ mybool: false
+ mystring: "helm rocks!"
+
+`
+`yaml
+
+= subchart1's values.yaml file
+
+default:
+ data:
+ myint: 999
+ mybool: true
+
+[source]
+----
+The parent chart's resulting values would be:
+
+----
+
+= parent's final values
+
+myimports:
+ myint: 999
+ mybool: true
+ mystring: "helm rocks!"
+
+[source]
+----
+
+The parent's final values now contains the `myint` and `mybool` fields imported from subchart1.
+
+### Managing Dependencies manually via the `charts/` directory
+
+If more control over dependencies is desired, these dependencies can
+be expressed explicitly by copying the dependency charts into the
+`charts/` directory.
+
+A dependency can be either a chart archive (`foo-1.2.3.tgz`) or an
+unpacked chart directory. But its name cannot start with `_` or `.`.
+Such files are ignored by the chart loader.
+
+For example, if the WordPress chart depends on the Apache chart, the
+Apache chart (of the correct version) is supplied in the WordPress
+chart's `charts/` directory:
+
+----
+
+wordpress:
+ Chart.yaml
+ requirements.yaml
+ # …
+ charts/
+ apache/
+ Chart.yaml
+ # …
+ mysql/
+ Chart.yaml
+ # …
+```
+
+The example above shows how the WordPress chart expresses its dependency
+on Apache and MySQL by including those charts inside of its `charts/`
+directory.
+
+*TIP:* _To drop a dependency into your `charts/` directory, use the
+`helm fetch` command_
+
+=== Operational aspects of using dependencies
+
+The above sections explain how to specify chart dependencies, but how does this affect
+chart installation using `helm install` and `helm upgrade`?
+
+Suppose that a chart named "A" creates the following Kubernetes objects
+
+* namespace "A-Namespace"
+* statefulset "A-StatefulSet"
+* service "A-Service"
+
+Furthermore, A is dependent on chart B that creates objects
+
+* namespace "B-Namespace"
+* replicaset "B-ReplicaSet"
+* service "B-Service"
+
+After installation/upgrade of chart A a single Helm release is created/modified. The release will
+create/update all of the above Kubernetes objects in the following order:
+
+* A-Namespace
+* B-Namespace
+* A-StatefulSet
+* B-ReplicaSet
+* A-Service
+* B-Service
+
+This is because when Helm installs/upgrades charts,
+the Kubernetes objects from the charts and all its dependencies are 
+
+* aggregrated into a single set; then
+* sorted by type followed by name; and then
+* created/updated in that order.
+
+Hence a single release is created with all the objects for the chart and its dependencies.
+
+The install order of Kubernetes types is given by the enumeration InstallOrder in kind_sorter.go
+(see https://github.com/kubernetes/helm/blob/master/pkg/tiller/kind_sorter.go#L26[the Helm source file]).
+
+== Templates and Values
+
+Helm Chart templates are written in the
+https://golang.org/pkg/text/template/[Go template language], with the
+addition of 50 or so add-on template
+functions https://github.com/Masterminds/sprig[from the Sprig library] and a
+few other link:charts_tips_and_tricks.html[specialized functions].
+
+All template files are stored in a chart's `templates/` folder. When
+Helm renders the charts, it will pass every file in that directory
+through the template engine.
+
+Values for the templates are supplied two ways:
+
+* Chart developers may supply a file called `values.yaml` inside of a
+chart. This file can contain default values.
+* Chart users may supply a YAML file that contains values. This can be
+provided on the command line with `helm install`.
+
+When a user supplies custom values, these values will override the
+values in the chart's `values.yaml` file.
+
+=== Template Files
+
+Template files follow the standard conventions for writing Go templates
+(see https://golang.org/pkg/text/template/[the text/template Go package documentation]
+for details).
+An example template file might look something like this:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: deis-database
+  namespace: deis
+  labels:
+    app.kubernetes.io/managed-by: deis
+spec:
+  replicas: 1
+  selector:
+    app.kubernetes.io/name: deis-database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: deis-database
+    spec:
+      serviceAccount: deis-database
+      containers:
+        - name: deis-database
+          image: {{.Values.imageRegistry}}/postgres:{{.Values.dockerTag}}
+          imagePullPolicy: {{.Values.pullPolicy}}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: DATABASE_STORAGE
+              value: {{default "minio" .Values.storage}}
+----
+
+The above example, based loosely on https://github.com/deis/charts[https://github.com/deis/charts], is a template for a Kubernetes replication controller.
+It can use the following four template values (usually defined in a
+`values.yaml` file):
+
+* `imageRegistry`: The source registry for the Docker image.
+* `dockerTag`: The tag for the docker image.
+* `pullPolicy`: The Kubernetes pull policy.
+* `storage`: The storage backend, whose default is set to `&quot;minio&quot;`
+
+All of these values are defined by the template author. Helm does not
+require or dictate parameters.
+
+To see many working charts, check out the https://github.com/kubernetes/charts[Kubernetes Charts
+project]
+
+=== Predefined Values
+
+Values that are supplied via a `values.yaml` file (or via the `--set`
+flag) are accessible from the `.Values` object in a template. But there
+are other pre-defined pieces of data you can access in your templates.
+
+The following values are pre-defined, are available to every template, and
+cannot be overridden. As with all values, the names are _case
+sensitive_.
+
+* `Release.Name`: The name of the release (not the chart)
+* `Release.Time`: The time the chart release was last updated. This will
+ match the `Last Released` time on a Release object.
+* `Release.Namespace`: The namespace the chart was released to.
+* `Release.Service`: The service that conducted the release. Usually
+ this is `Tiller`.
+* `Release.IsUpgrade`: This is set to true if the current operation is an upgrade or rollback.
+* `Release.IsInstall`: This is set to true if the current operation is an
+ install.
+* `Release.Revision`: The revision number. It begins at 1, and increments with
+ each `helm upgrade`.
+* `Chart`: The contents of the `Chart.yaml`. Thus, the chart version is
+ obtainable as `Chart.Version` and the maintainers are in
+ `Chart.Maintainers`.
+* `Files`: A map-like object containing all non-special files in the chart. This
+ will not give you access to templates, but will give you access to additional
+ files that are present (unless they are excluded using `.helmignore`). Files can be
+ accessed using `{{index .Files &quot;file.name&quot;}}` or using the `{{.Files.Get name}}` or
+ `{{.Files.GetString name}}` functions. You can also access the contents of the file
+ as `[]byte` using `{{.Files.GetBytes}}`
+* `Capabilities`: A map-like object that contains information about the versions
+ of Kubernetes (`{{.Capabilities.KubeVersion}}`, Tiller
+ (`{{.Capabilities.TillerVersion}}`, and the supported Kubernetes API versions
+ (`{{.Capabilities.APIVersions.Has &quot;batch/v1&quot;`)
+
+*NOTE:* Any unknown Chart.yaml fields will be dropped. They will not
+be accessible inside of the `Chart` object. Thus, Chart.yaml cannot be
+used to pass arbitrarily structured data into the template. The values
+file can be used for that, though.
+
+=== Values files
+
+Considering the template in the previous section, a `values.yaml` file
+that supplies the necessary values would look like this:
+
+[source,yaml]
+----
+imageRegistry: "quay.io/deis"
+dockerTag: "latest"
+pullPolicy: "Always"
+storage: "s3"
+----
+
+A values file is formatted in YAML. A chart may include a default
+`values.yaml` file. The Helm install command allows a user to override
+values by supplying additional YAML values:
+
+[source,console]
+----
+$ helm install --values=myvals.yaml wordpress
+----
+
+When values are passed in this way, they will be merged into the default
+values file. For example, consider a `myvals.yaml` file that looks like
+this:
+
+[source,yaml]
+----
+storage: "gcs"
+----
+
+When this is merged with the `values.yaml` in the chart, the resulting
+generated content will be:
+
+[source,yaml]
+----
+imageRegistry: "quay.io/deis"
+dockerTag: "latest"
+pullPolicy: "Always"
+storage: "gcs"
+----
+
+Note that only the last field was overridden.
+
+*NOTE:* The default values file included inside of a chart _must_ be named
+`values.yaml`. But files specified on the command line can be named
+anything.
+
+*NOTE:* If the `--set` flag is used on `helm install` or `helm upgrade`, those
+values are simply converted to YAML on the client side.
+
+*NOTE:* If any required entries in the values file exist, they can be declared
+as required in the chart template by using the link:charts_tips_and_tricks.html['required' function]
+
+Any of these values are then accessible inside of templates using the
+`.Values` object:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: deis-database
+  namespace: deis
+  labels:
+    app.kubernetes.io/managed-by: deis
+spec:
+  replicas: 1
+  selector:
+    app.kubernetes.io/name: deis-database
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: deis-database
+    spec:
+      serviceAccount: deis-database
+      containers:
+        - name: deis-database
+          image: {{.Values.imageRegistry}}/postgres:{{.Values.dockerTag}}
+          imagePullPolicy: {{.Values.pullPolicy}}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: DATABASE_STORAGE
+              value: {{default "minio" .Values.storage}}
+
+----
+
+=== Scope, Dependencies, and Values
+
+Values files can declare values for the top-level chart, as well as for
+any of the charts that are included in that chart's `charts/` directory.
+Or, to phrase it differently, a values file can supply values to the
+chart as well as to any of its dependencies. For example, the
+demonstration WordPress chart above has both `mysql` and `apache` as
+dependencies. The values file could supply values to all of these
+components:
+
+[source,yaml]
+----
+title: "My WordPress Site" # Sent to the WordPress template
+
+mysql:
+  max_connections: 100 # Sent to MySQL
+  password: "secret"
+
+apache:
+  port: 8080 # Passed to Apache
+----
+
+Charts at a higher level have access to all of the variables defined
+beneath. So the WordPress chart can access the MySQL password as
+`.Values.mysql.password`. But lower level charts cannot access things in
+parent charts, so MySQL will not be able to access the `title` property. Nor,
+for that matter, can it access `apache.port`.
+
+Values are namespaced, but namespaces are pruned. So for the WordPress
+chart, it can access the MySQL password field as `.Values.mysql.password`. But
+for the MySQL chart, the scope of the values has been reduced and the
+namespace prefix removed, so it will see the password field simply as
+`.Values.password`.
+
+==== Global Values
+
+As of 2.0.0-Alpha.2, Helm supports special "global" value. Consider
+this modified version of the previous example:
+
+[source,yaml]
+----
+title: "My WordPress Site" # Sent to the WordPress template
+
+global:
+  app: MyWordPress
+
+mysql:
+  max_connections: 100 # Sent to MySQL
+  password: "secret"
+
+apache:
+  port: 8080 # Passed to Apache
+----
+
+The above adds a `global` section with the value `app: MyWordPress`.
+This value is available to _all_ charts as `.Values.global.app`.
+
+For example, the `mysql` templates may access `app` as `{{.Values.global.app}}`, and
+so can the `apache` chart. Effectively, the values file above is
+regenerated like this:
+
+[source,yaml]
+----
+title: "My WordPress Site" # Sent to the WordPress template
+
+global:
+  app: MyWordPress
+
+mysql:
+  global:
+    app: MyWordPress
+  max_connections: 100 # Sent to MySQL
+  password: "secret"
+
+apache:
+  global:
+    app: MyWordPress
+  port: 8080 # Passed to Apache
+----
+
+This provides a way of sharing one top-level variable with all
+subcharts, which is useful for things like setting `metadata` properties
+like labels.
+
+If a subchart declares a global variable, that global will be passed
+_downward_ (to the subchart's subcharts), but not _upward_ to the parent
+chart. There is no way for a subchart to influence the values of the
+parent chart.
+
+Also, global variables of parent charts take precedence over the global variables from subcharts.
+
+=== References
+
+When it comes to writing templates and values files, there are several
+standard references that will help you out.
+
+* https://godoc.org/text/template[Go templates]
+* https://godoc.org/github.com/Masterminds/sprig[Extra template functions]
+* http://yaml.org/spec/[The YAML format]
+
+== Using Helm to Manage Charts
+
+The `helm` tool has several commands for working with charts.
+
+It can create a new chart for you:
+
+[source,console]
+----
+$ helm create mychart
+Created mychart/
+----
+
+Once you have edited a chart, `helm` can package it into a chart archive
+for you:
+
+[source,console]
+----
+$ helm package mychart
+Archived mychart-0.1.-.tgz
+----
+
+You can also use `helm` to help you find issues with your chart's
+formatting or information:
+
+[source,console]
+----
+$ helm lint mychart
+No issues found
+----
+
+== Chart Repositories
+
+A _chart repository_ is an HTTP server that houses one or more packaged
+charts. While `helm` can be used to manage local chart directories, when
+it comes to sharing charts, the preferred mechanism is a chart
+repository.
+
+Any HTTP server that can serve YAML files and tar files and can answer
+GET requests can be used as a repository server.
+
+Helm comes with built-in package server for developer testing (`helm
+serve`). The Helm team has tested other servers, including Google Cloud
+Storage with website mode enabled, and S3 with website mode enabled.
+
+A repository is characterized primarily by the presence of a special
+file called `index.yaml` that has a list of all of the packages supplied
+by the repository, together with metadata that allows retrieving and
+verifying those packages.
+
+On the client side, repositories are managed with the `helm repo`
+commands. However, Helm does not provide tools for uploading charts to
+remote repository servers. This is because doing so would add
+substantial requirements to an implementing server, and thus raise the
+barrier for setting up a repository.
+
+== Chart Starter Packs
+
+The `helm create` command takes an optional `--starter` option that lets you
+specify a "starter chart".
+
+Starters are just regular charts, but are located in `$HELM_HOME/starters`.
+As a chart developer, you may author charts that are specifically designed
+to be used as starters. Such charts should be designed with the following
+considerations in mind:
+
+* The `Chart.yaml` will be overwritten by the generator.
+* Users will expect to modify such a chart's contents, so documentation
+ should indicate how users can do so.
+* All occurrences of `&lt;CHARTNAME&gt;` will be replaced with the specified chart
+ name so that starter charts can be used as templates.
+
+Currently the only way to add a chart to `$HELM_HOME/starters` is to manually
+copy it there. In your chart's documentation, you may want to explain that
+process.
