@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-helm install -f values.yaml -n docs-helm .
+helm install -f ./docs-helm/values.yaml -n docs-helm ./docs-helm

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-helm upgrade -f values.yaml docs-helm .
+helm upgrade -f ./docs-helm/values.yaml docs-helm ./docs-helm
