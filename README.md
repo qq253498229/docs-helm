@@ -1,6 +1,6 @@
 # Helm中文文档
 
-[English](docs/en/README.md)
+[英文](https://docs-helm.codeforfun.cn/en/README.html)
 
 [英文markdown版](docs/en/README.md)
 
