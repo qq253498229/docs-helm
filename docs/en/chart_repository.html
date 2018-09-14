@@ -1,0 +1,168 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="the-chart-repository-guide">The Chart Repository Guide</h1>
+<p>This section explains how to create and work with Helm chart repositories. At a high level, a chart repository is a location where packaged charts can be stored and shared.</p>
+<p>The official chart repository is maintained by the <a href="https://github.com/kubernetes/charts">Kubernetes Charts</a>, and we welcome participation. But Helm also makes it easy to create and run your own chart repository. This guide explains how to do so.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Go through the <a href="quickstart.html">Quickstart</a> Guide</li>
+<li>Read through the <a href="charts.html">Charts</a> document</li>
+</ul>
+<h2 id="create-a-chart-repository">Create a chart repository</h2>
+<p>A <em>chart repository</em> is an HTTP server that houses an <code>index.yaml</code> file and optionally some packaged charts. When you’re ready to share your charts, the preferred way to do so is by uploading them to a chart repository.</p>
+<p><strong>Note:</strong> For Helm 2.0.0, chart repositories do not have any intrinsic authentication. There is an <a href="https://github.com/kubernetes/helm/issues/1038">issue tracking progress</a> in GitHub.</p>
+<p>Because a chart repository can be any HTTP server that can serve YAML and tar files and can answer GET requests, you have a plethora of options when it comes down to hosting your own chart repository. For example, you can use a Google Cloud Storage (GCS) bucket, Amazon S3 bucket, Github Pages, or even create your own web server.</p>
+<h3 id="the-chart-repository-structure">The chart repository structure</h3>
+<p>A chart repository consists of packaged charts and a special file called <code>index.yaml</code> which contains an index of all of the charts in the repository. Frequently, the charts that <code>index.yaml</code> describes are also hosted on the same server, as are the <a href="provenance.html">provenance files</a>.</p>
+<p>For example, the layout of the repository <code>https://example.com/charts</code> might look like this:</p>
+<pre><code>charts/
+  |
+  |- index.yaml
+  |
+  |- alpine-0.1.2.tgz
+  |
+  |- alpine-0.1.2.tgz.prov</code></pre>
+<p>In this case, the index file would contain information about one chart, the Alpine chart, and provide the download URL <code>https://example.com/charts/alpine-0.1.2.tgz</code> for that chart.</p>
+<p>It is not required that a chart package be located on the same server as the <code>index.yaml</code> file. However, doing so is often the easiest.</p>
+<h3 id="the-index-file">The index file</h3>
+<p>The index file is a yaml file called <code>index.yaml</code>. It contains some metadata about the package, including the contents of a chart’s <code>Chart.yaml</code> file. A valid chart repository must have an index file. The index file contains information about each chart in the chart repository. The <code>helm repo index</code> command will generate an index file based on a given local directory that contains packaged charts.</p>
+<p>This is an example of an index file:</p>
+<pre><code>apiVersion: v1
+entries:
+  alpine:
+    - created: 2016-10-06T16:23:20.499814565-06:00
+      description: Deploy a basic Alpine Linux pod
+      digest: 99c76e403d752c84ead610644d4b1c2f2b453a74b921f422b9dcb8a7c8b559cd
+      home: https://k8s.io/helm
+      name: alpine
+      sources:
+      - https://github.com/kubernetes/helm
+      urls:
+      - https://technosophos.github.io/tscharts/alpine-0.2.0.tgz
+      version: 0.2.0
+    - created: 2016-10-06T16:23:20.499543808-06:00
+      description: Deploy a basic Alpine Linux pod
+      digest: 515c58e5f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cd78727
+      home: https://k8s.io/helm
+      name: alpine
+      sources:
+      - https://github.com/kubernetes/helm
+      urls:
+      - https://technosophos.github.io/tscharts/alpine-0.1.0.tgz
+      version: 0.1.0
+  nginx:
+    - created: 2016-10-06T16:23:20.499543808-06:00
+      description: Create a basic nginx HTTP server
+      digest: aaff4545f79d8b2913a10cb400ebb6fa9c77fe813287afbacf1a0b897cdffffff
+      home: https://k8s.io/helm
+      name: nginx
+      sources:
+      - https://github.com/kubernetes/charts
+      urls:
+      - https://technosophos.github.io/tscharts/nginx-1.1.0.tgz
+      version: 1.1.0
+generated: 2016-10-06T16:23:20.499029981-06:00</code></pre>
+<p>A generated index and packages can be served from a basic webserver. You can test things out locally with the <code>helm serve</code> command, which starts a local server.</p>
+<pre class="console"><code>$ helm serve --repo-path ./charts
+Regenerating index. This may take a moment.
+Now serving you on 127.0.0.1:8879</code></pre>
+<p>The above starts a local webserver, serving the charts it finds in <code>./charts</code>. The serve command will automatically generate an <code>index.yaml</code> file for you during startup.</p>
+<h2 id="hosting-chart-repositories">Hosting Chart Repositories</h2>
+<p>This part shows several ways to serve a chart repository.</p>
+<h3 id="google-cloud-storage">Google Cloud Storage</h3>
+<p>The first step is to <strong>create your GCS bucket</strong>. We’ll call ours <code>fantastic-charts</code>.</p>
+<figure>
+<img src="images/create-a-bucket.png" alt="Create a GCS Bucket" /><figcaption>Create a GCS Bucket</figcaption>
+</figure>
+<p>Next, make your bucket public by <strong>editing the bucket permissions</strong>.</p>
+<figure>
+<img src="images/edit-permissions.png" alt="Edit Permissions" /><figcaption>Edit Permissions</figcaption>
+</figure>
+<p>Insert this line item to <strong>make your bucket public</strong>:</p>
+<figure>
+<img src="images/make-bucket-public.png" alt="Make Bucket Public" /><figcaption>Make Bucket Public</figcaption>
+</figure>
+<p>Congratulations, now you have an empty GCS bucket ready to serve charts!</p>
+<p>You may upload your chart repository using the Google Cloud Storage command line tool, or using the GCS web UI. This is the technique the official Kubernetes Charts repository hosts its charts, so you may want to take a <a href="https://github.com/kubernetes/charts">peek at that project</a> if you get stuck.</p>
+<p><strong>Note:</strong> A public GCS bucket can be accessed via simple HTTPS at this address <code>https://bucket-name.storage.googleapis.com/</code>.</p>
+<h3 id="jfrog-artifactory">JFrog Artifactory</h3>
+<p>You can also set up chart repositories using JFrog Artifactory. Read more about chart repositories with JFrog Artifactory <a href="https://www.jfrog.com/confluence/display/RTF/Helm+Chart+Repositories">here</a></p>
+<h3 id="github-pages-example">Github Pages example</h3>
+<p>In a similar way you can create charts repository using GitHub Pages.</p>
+<p>GitHub allows you to serve static web pages in two different ways:</p>
+<ul>
+<li>By configuring a project to serve the contents of its <code>docs/</code> directory</li>
+<li>By configuring a project to serve a particular branch</li>
+</ul>
+<p>We’ll take the second approach, though the first is just as easy.</p>
+<p>The first step will be to <strong>create your gh-pages branch</strong>. You can do that locally as.</p>
+<pre class="console"><code>$ git checkout -b gh-pages</code></pre>
+<p>Or via web browser using <strong>Branch</strong> button on your Github repository:</p>
+<figure>
+<img src="images/create-a-gh-page-button.png" alt="Create Github Pages branch" /><figcaption>Create Github Pages branch</figcaption>
+</figure>
+<p>Next, you’ll want to make sure your <strong>gh-pages branch</strong> is set as Github Pages, click on your repo <strong>Settings</strong> and scroll down to <strong>Github pages</strong> section and set as per below:</p>
+<figure>
+<img src="images/set-a-gh-page.png" alt="Create Github Pages branch" /><figcaption>Create Github Pages branch</figcaption>
+</figure>
+<p>By default <strong>Source</strong> usually gets set to <strong>gh-pages branch</strong>. If this is not set by default, then select it.</p>
+<p>You can use a <strong>custom domain</strong> there if you wish so.</p>
+<p>And check that <strong>Enforce HTTPS</strong> is ticked, so the <strong>HTTPS</strong> will be used when charts are served.</p>
+<p>In such setup you can use <strong>master branch</strong> to store your charts code, and <strong>gh-pages branch</strong> as charts repository, e.g.: <code>https://USERNAME.github.io/REPONAME</code>. The demonstration <a href="https://github.com/technosophos/tscharts">TS Charts</a> repository is accessible at <code>https://technosophos.github.io/tscharts/</code>.</p>
+<h3 id="ordinary-web-servers">Ordinary web servers</h3>
+<p>To configure an ordinary web server to serve Helm charts, you merely need to do the following:</p>
+<ul>
+<li>Put your index and charts in a directory that the server can serve</li>
+<li>Make sure the <code>index.yaml</code> file can be accessed with no authentication requirement</li>
+<li>Make sure <code>yaml</code> files are served with the correct content type (<code>text/yaml</code> or <code>text/x-yaml</code>)</li>
+</ul>
+<p>For example, if you want to serve your charts out of <code>$WEBROOT/charts</code>, make sure there is a <code>charts/</code> directory in your web root, and put the index file and charts inside of that folder.</p>
+<h2 id="managing-chart-repositories">Managing Chart Repositories</h2>
+<p>Now that you have a chart repository, the last part of this guide explains how to maintain charts in that repository.</p>
+<h3 id="store-charts-in-your-chart-repository">Store charts in your chart repository</h3>
+<p>Now that you have a chart repository, let’s upload a chart and an index file to the repository. Charts in a chart repository must be packaged (<code>helm package chart-name/</code>) and versioned correctly (following <a href="https://semver.org/">SemVer 2</a> guidelines).</p>
+<p>These next steps compose an example workflow, but you are welcome to use whatever workflow you fancy for storing and updating charts in your chart repository.</p>
+<p>Once you have a packaged chart ready, create a new directory, and move your packaged chart to that directory.</p>
+<pre class="console"><code>$ helm package docs/examples/alpine/
+$ mkdir fantastic-charts
+$ mv alpine-0.1.0.tgz fantastic-charts/
+$ helm repo index fantastic-charts --url https://fantastic-charts.storage.googleapis.com</code></pre>
+<p>The last command takes the path of the local directory that you just created and the URL of your remote chart repository and composes an <code>index.yaml</code> file inside the given directory path.</p>
+<p>Now you can upload the chart and the index file to your chart repository using a sync tool or manually. If you’re using Google Cloud Storage, check out this <a href="chart_repository_sync_example.html">example workflow</a> using the gsutil client. For GitHub, you can simply put the charts in the appropriate destination branch.</p>
+<h3 id="add-new-charts-to-an-existing-repository">Add new charts to an existing repository</h3>
+<p>Each time you want to add a new chart to your repository, you must regenerate the index. The <code>helm repo index</code> command will completely rebuild the <code>index.yaml</code> file from scratch, including only the charts that it finds locally.</p>
+<p>However, you can use the <code>--merge</code> flag to incrementally add new charts to an existing <code>index.yaml</code> file (a great option when working with a remote repository like GCS). Run <code>helm repo index --help</code> to learn more,</p>
+<p>Make sure that you upload both the revised <code>index.yaml</code> file and the chart. And if you generated a provenance file, upload that too.</p>
+<h3 id="share-your-charts-with-others">Share your charts with others</h3>
+<p>When you’re ready to share your charts, simply let someone know what the URL of your repository is.</p>
+<p>From there, they will add the repository to their helm client via the <code>helm repo add [NAME] [URL]</code> command with any name they would like to use to reference the repository.</p>
+<pre class="console"><code>$ helm repo add fantastic-charts https://fantastic-charts.storage.googleapis.com
+$ helm repo list
+fantastic-charts    https://fantastic-charts.storage.googleapis.com</code></pre>
+<p>If the charts are backed by HTTP basic authentication, you can also supply the username and password here:</p>
+<pre class="console"><code>$ helm repo add fantastic-charts https://fantastic-charts.storage.googleapis.com --username my-username --password my-password
+$ helm repo list
+fantastic-charts    https://fantastic-charts.storage.googleapis.com</code></pre>
+<p><strong>Note:</strong> A repository will not be added if it does not contain a valid <code>index.yaml</code>.</p>
+<p>After that, your users will be able to search through your charts. After you’ve updated the repository, they can use the <code>helm repo update</code> command to get the latest chart information.</p>
+<p><em>Under the hood, the <code>helm repo add</code> and <code>helm repo update</code> commands are fetching the index.yaml file and storing them in the <code>$HELM_HOME/repository/cache/</code> directory. This is where the <code>helm search</code> function finds information about charts.</em></p>
+</body>
+</html>
+</div>

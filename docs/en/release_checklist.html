@@ -1,0 +1,239 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="release-checklist">Release Checklist</h1>
+<p><strong>IMPORTANT</strong>: If your experience deviates from this document, please document the changes to keep it up-to-date.</p>
+<h2 id="release-meetings">Release Meetings</h2>
+<p>As part of the release process, two of the weekly developer calls will be co-opted as “release meetings.”</p>
+<h3 id="start-of-the-release-cycle">Start of the Release Cycle</h3>
+<p>The first developer call after a release will be used as the release meeting to start the next release cycle. During this meeting, the following items must be identified:</p>
+<ul>
+<li>Release date</li>
+<li>Goals/Objectives for this release</li>
+<li>The release manager (basically whoever is going to cut the release)</li>
+<li>Any other important details for the community</li>
+</ul>
+<p>All of this information should be added to the GitHub milestone for the given release. This should give the community and maintainers a clear set of guidelines to follow when choosing whether or not to add issues and PRs to a given release.</p>
+<h3 id="end-almost-of-the-release-cycle">End (almost) of the Release Cycle</h3>
+<p>The developer call closest to two weeks before the scheduled release date will be used to review any remaining PRs that should be pulled into the release. This is the place to debate whether or not we should wait before cutting a release and any other concerns. At the end of this meeting, if the release date has not been pushed out, the first RC should be cut. Subsequent developer calls in between this meeting and the release date should have some time set aside to see if any bugs were found. Once the release date is reached, the final release can be cut</p>
+<h2 id="a-maintainers-guide-to-releasing-helm">A Maintainer’s Guide to Releasing Helm</h2>
+<p>So you’re in charge of a new release for Helm? Cool. Here’s what to do…</p>
+<figure>
+<img src="images/nothing.png" alt="TODO: Nothing" /><figcaption>TODO: Nothing</figcaption>
+</figure>
+<p>Just kidding! :trollface:</p>
+<p>All releases will be of the form vX.Y.Z where X is the major version number, Y is the minor version number and Z is the patch release number. This project strictly follows <a href="http://semver.org/">semantic versioning</a> so following this step is critical.</p>
+<p>It is important to note that this document assumes that the git remote in your repository that corresponds to “https://github.com/kubernetes/helm” is named “upstream”. If yours is not (for example, if you’ve chosen to name it “origin” or something similar instead), be sure to adjust the listed snippets for your local environment accordingly. If you are not sure what your upstream remote is named, use a command like <code>git remote -v</code> to find out.</p>
+<p>If you don’t have an upstream remote, you can add one easily using something like:</p>
+<pre class="shell"><code>git remote add upstream git@github.com:kubernetes/helm.git</code></pre>
+<p>In this doc, we are going to reference a few environment variables as well, which you may want to set for convenience. For major/minor releases, use the following:</p>
+<pre class="shell"><code>export RELEASE_NAME=vX.Y.0
+export RELEASE_BRANCH_NAME=&quot;release-X.Y&quot;
+export RELEASE_CANDIDATE_NAME=&quot;$RELEASE_NAME-rc.1&quot;</code></pre>
+<p>If you are creating a patch release, you may want to use the following instead:</p>
+<pre class="shell"><code>export PREVIOUS_PATCH_RELEASE=vX.Y.Z
+export RELEASE_NAME=vX.Y.Z+1
+export RELEASE_BRANCH_NAME=&quot;release-X.Y&quot;
+export RELEASE_CANDIDATE_NAME=&quot;$RELEASE_NAME-rc.1&quot;</code></pre>
+<h2 id="create-the-release-branch">1. Create the Release Branch</h2>
+<h3 id="majorminor-releases">Major/Minor Releases</h3>
+<p>Major releases are for new feature additions and behavioral changes <em>that break backwards compatibility</em>. Minor releases are for new feature additions that do not break backwards compatibility. To create a major or minor release, start by creating a <code>release-vX.Y.0</code> branch from master.</p>
+<pre class="shell"><code>git fetch upstream
+git checkout upstream/master
+git checkout -b $RELEASE_BRANCH_NAME</code></pre>
+<p>This new branch is going to be the base for the release, which we are going to iterate upon later.</p>
+<h3 id="patch-releases">Patch releases</h3>
+<p>Patch releases are a few critical cherry-picked fixes to existing releases. Start by creating a <code>release-vX.Y.Z</code> branch from the latest patch release.</p>
+<pre class="shell"><code>git fetch upstream --tags
+git checkout $PREVIOUS_PATCH_RELEASE
+git checkout -b $RELEASE_BRANCH_NAME</code></pre>
+<p>From here, we can cherry-pick the commits we want to bring into the patch release:</p>
+<pre class="shell"><code># get the commits ids we want to cherry-pick
+git log --oneline
+# cherry-pick the commits starting from the oldest one, without including merge commits
+git cherry-pick -x &lt;commit-id&gt;
+git cherry-pick -x &lt;commit-id&gt;</code></pre>
+<p>This new branch is going to be the base for the release, which we are going to iterate upon later.</p>
+<h2 id="change-the-version-number-in-git">2. Change the Version Number in Git</h2>
+<p>When doing a minor release, make sure to update pkg/version/version.go with the new release version.</p>
+<pre class="shell"><code>$ git diff pkg/version/version.go
+diff --git a/pkg/version/version.go b/pkg/version/version.go
+index 2109a0a..6f5a1a4 100644
+--- a/pkg/version/version.go
++++ b/pkg/version/version.go
+@@ -26,7 +26,7 @@ var (
+        // Increment major number for new feature additions and behavioral changes.
+        // Increment minor number for bug fixes and performance enhancements.
+        // Increment patch number for critical fixes to existing releases.
+-       Version = &quot;v2.6&quot;
++       Version = &quot;v2.7&quot;
+
+        // BuildMetadata is extra build time data
+        BuildMetadata = &quot;unreleased&quot;</code></pre>
+<pre class="shell"><code>git add .
+git commit -m &quot;bump version to $RELEASE_CANDIDATE_NAME&quot;</code></pre>
+<h2 id="commit-and-push-the-release-branch">3. Commit and Push the Release Branch</h2>
+<p>In order for others to start testing, we can now push the release branch upstream and start the test process.</p>
+<pre class="shell"><code>git push upstream $RELEASE_BRANCH_NAME</code></pre>
+<p>Make sure to check <a href="https://circleci.com/gh/kubernetes/helm">helm on CircleCI</a> and make sure the release passed CI before proceeding.</p>
+<p>If anyone is available, let others peer-review the branch before continuing to ensure that all the proper changes have been made and all of the commits for the release are there.</p>
+<h2 id="create-a-release-candidate">4. Create a Release Candidate</h2>
+<p>Now that the release branch is out and ready, it is time to start creating and iterating on release candidates.</p>
+<pre class="shell"><code>git tag --sign --annotate &quot;${RELEASE_CANDIDATE_NAME}&quot; --message &quot;Helm release ${RELEASE_CANDIDATE_NAME}&quot;
+git push upstream $RELEASE_CANDIDATE_NAME</code></pre>
+<p>CircleCI will automatically create a tagged release image and client binary to test with.</p>
+<p>For testers, the process to start testing after CircleCI finishes building the artifacts involves the following steps to grab the client from Google Cloud Storage:</p>
+<p>linux/amd64, using /bin/bash:</p>
+<pre class="shell"><code>wget https://kubernetes-helm.storage.googleapis.com/helm-$RELEASE_CANDIDATE_NAME-linux-amd64.tar.gz</code></pre>
+<p>darwin/amd64, using Terminal.app:</p>
+<pre class="shell"><code>wget https://kubernetes-helm.storage.googleapis.com/helm-$RELEASE_CANDIDATE_NAME-darwin-amd64.tar.gz</code></pre>
+<p>windows/amd64, using PowerShell:</p>
+<pre class="shell"><code>PS C:\&gt; Invoke-WebRequest -Uri &quot;https://kubernetes-helm.storage.googleapis.com/helm-$RELEASE_CANDIDATE_NAME-windows-amd64.zip&quot; -OutFile &quot;helm-$ReleaseCandidateName-windows-amd64.zip&quot;</code></pre>
+<p>Then, unpack and move the binary to somewhere on your $PATH, or move it somewhere and add it to your $PATH (e.g. /usr/local/bin/helm for linux/macOS, C:Files.exe for Windows).</p>
+<h2 id="iterate-on-successive-release-candidates">5. Iterate on Successive Release Candidates</h2>
+<p>Spend several days explicitly investing time and resources to try and break helm in every possible way, documenting any findings pertinent to the release. This time should be spent testing and finding ways in which the release might have caused various features or upgrade environments to have issues, not coding. During this time, the release is in code freeze, and any additional code changes will be pushed out to the next release.</p>
+<p>During this phase, the $RELEASE_BRANCH_NAME branch will keep evolving as you will produce new release candidates. The frequency of new candidates is up to the release manager: use your best judgement taking into account the severity of reported issues, testers’ availability, and the release deadline date. Generally speaking, it is better to let a release roll over the deadline than to ship a broken release.</p>
+<p>Each time you’ll want to produce a new release candidate, you will start by adding commits to the branch by cherry-picking from master:</p>
+<pre class="shell"><code>git cherry-pick -x &lt;commit_id&gt;</code></pre>
+<p>You will also want to update the release version number and the CHANGELOG as we did in steps 2 and 3 as separate commits.</p>
+<p>After that, tag it and notify users of the new release candidate:</p>
+<pre class="shell"><code>export RELEASE_CANDIDATE_NAME=&quot;$RELEASE_NAME-rc.2&quot;
+git tag --sign --annotate &quot;${RELEASE_CANDIDATE_NAME}&quot; --message &quot;Helm release ${RELEASE_CANDIDATE_NAME}&quot;
+git push upstream $RELEASE_CANDIDATE_NAME</code></pre>
+<p>From here on just repeat this process, continuously testing until you’re happy with the release candidate.</p>
+<h2 id="finalize-the-release">6. Finalize the Release</h2>
+<p>When you’re finally happy with the quality of a release candidate, you can move on and create the real thing. Double-check one last time to make sure everything is in order, then finally push the release tag.</p>
+<pre class="shell"><code>git checkout $RELEASE_BRANCH_NAME
+git tag --sign --annotate &quot;${RELEASE_NAME}&quot; --message &quot;Helm release ${RELEASE_NAME}&quot;
+git push upstream $RELEASE_NAME</code></pre>
+<h2 id="write-the-release-notes">7. Write the Release Notes</h2>
+<p>We will auto-generate a changelog based on the commits that occurred during a release cycle, but it is usually more beneficial to the end-user if the release notes are hand-written by a human being/marketing team/dog.</p>
+<p>If you’re releasing a major/minor release, listing notable user-facing features is usually sufficient. For patch releases, do the same, but make note of the symptoms and who is affected.</p>
+<p>An example release note for a minor release would look like this:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode markdown"><code class="sourceCode markdown"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="fu">## vX.Y.Z</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">Helm vX.Y.Z is a feature release. This release, we focused on &lt;insert focal point&gt;. Users are encouraged to upgrade for the best experience.</a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">The community keeps growing, and we&#39;d love to see you there!</a>
+<a class="sourceLine" id="cb17-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb17-7" data-line-number="7">- <span class="fl">Join the discussion in </span><span class="ot">[Kubernetes Slack](https://slack.k8s.io/)</span><span class="fl">:</span></a>
+<a class="sourceLine" id="cb17-8" data-line-number="8"><span class="fl">  - </span><span class="bn">`#helm-users`</span><span class="fl"> for questions and just to hang out</span></a>
+<a class="sourceLine" id="cb17-9" data-line-number="9"><span class="fl">  - </span><span class="bn">`#helm-dev`</span><span class="fl"> for discussing PRs, code, and bugs</span></a>
+<a class="sourceLine" id="cb17-10" data-line-number="10"><span class="fl">- Hang out at the Public Developer Call: Thursday, 9:30 Pacific via </span><span class="ot">[Zoom](https://zoom.us/j/696660622)</span></a>
+<a class="sourceLine" id="cb17-11" data-line-number="11"><span class="fl">- Test, debug, and contribute charts: </span><span class="ot">[GitHub/kubernetes/charts](https://github.com/kubernetes/charts)</span></a>
+<a class="sourceLine" id="cb17-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb17-13" data-line-number="13"><span class="fu">## Installation and Upgrading</span></a>
+<a class="sourceLine" id="cb17-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb17-15" data-line-number="15">Download Helm X.Y. The common platform binaries are here:</a>
+<a class="sourceLine" id="cb17-16" data-line-number="16"></a>
+<a class="sourceLine" id="cb17-17" data-line-number="17">- <span class="ot">[MacOS amd64](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-darwin-amd64.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-darwin-amd64.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-18" data-line-number="18"><span class="fl">- </span><span class="ot">[Linux amd64](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-amd64.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-amd64.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-19" data-line-number="19"><span class="fl">- </span><span class="ot">[Linux arm](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-arm.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-arm.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-20" data-line-number="20"><span class="fl">- </span><span class="ot">[Linux arm64](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-arm64.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-arm64.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-21" data-line-number="21"><span class="fl">- </span><span class="ot">[Linux i386](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-386.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-386.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-22" data-line-number="22"><span class="fl">- </span><span class="ot">[Linux ppc64le](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-ppc64le.tar.gz)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-linux-ppc64le.tar.gz.sha256))</span></a>
+<a class="sourceLine" id="cb17-23" data-line-number="23"><span class="fl">- </span><span class="ot">[Windows amd64](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-windows-amd64.zip)</span><span class="fl"> (</span><span class="ot">[checksum](https://storage.googleapis.com/kubernetes-helm/helm-vX.Y.Z-windows-amd64.zip.sha256))</span></a>
+<a class="sourceLine" id="cb17-24" data-line-number="24"></a>
+<a class="sourceLine" id="cb17-25" data-line-number="25">Once you have the client installed, upgrade Tiller with <span class="bn">`helm init --upgrade`</span>.</a>
+<a class="sourceLine" id="cb17-26" data-line-number="26"></a>
+<a class="sourceLine" id="cb17-27" data-line-number="27">The <span class="ot">[Quickstart Guide](https://docs.helm.sh/using_helm/#quickstart-guide)</span> will get you going from there. For **upgrade instructions** or detailed installation notes, check the <span class="ot">[install guide](https://docs.helm.sh/using_helm/#installing-helm)</span>. You can also use a <span class="ot">[script to install](https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get)</span> on any system with <span class="bn">`bash`</span>.</a>
+<a class="sourceLine" id="cb17-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb17-29" data-line-number="29"><span class="fu">## What&#39;s Next</span></a>
+<a class="sourceLine" id="cb17-30" data-line-number="30"></a>
+<a class="sourceLine" id="cb17-31" data-line-number="31">- <span class="fl">vX.Y.Z+1 will contain only bug fixes.</span></a>
+<a class="sourceLine" id="cb17-32" data-line-number="32"><span class="fl">- vX.Y+1.Z is the next feature release. This release will focus on ...</span></a>
+<a class="sourceLine" id="cb17-33" data-line-number="33"></a>
+<a class="sourceLine" id="cb17-34" data-line-number="34"><span class="fu">## Changelog</span></a>
+<a class="sourceLine" id="cb17-35" data-line-number="35"></a>
+<a class="sourceLine" id="cb17-36" data-line-number="36">- <span class="fl">chore(*): bump version to v2.7.0 08c1144f5eb3e3b636d9775617287cc26e53dba4 (Adam Reese)</span></a>
+<a class="sourceLine" id="cb17-37" data-line-number="37"><span class="fl">- fix circle not building tags f4f932fabd197f7e6d608c8672b33a483b4b76fa (Matthew Fisher)</span></a></code></pre></div>
+<p>The changelog at the bottom of the release notes can be generated with this command:</p>
+<pre class="shell"><code>PREVIOUS_RELEASE=vX.Y.Z
+git log --no-merges --pretty=format:&#39;- %s %H (%aN)&#39; $RELEASE_NAME $PREVIOUS_RELEASE</code></pre>
+<p>Once finished, go into GitHub and edit the release notes for the tagged release with the notes written here.</p>
+<h2 id="evangelize">8. Evangelize</h2>
+<p>Congratulations! You’re done. Go grab yourself a $DRINK_OF_CHOICE. You’ve earned it.</p>
+<p>After enjoying a nice $DRINK_OF_CHOICE, go forth and announce the glad tidings of the new release in Slack and on Twitter. You should also notify any key partners in the helm community such as the homebrew formula maintainers, the owners of incubator projects (e.g. ChartMuseum) and any other interested parties.</p>
+<p>Optionally, write a blog post about the new release and showcase some of the new features on there!</p>
+</body>
+</html>
+</div>

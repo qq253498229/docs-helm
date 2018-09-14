@@ -1,0 +1,269 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="named-templates">Named Templates</h1>
+<p>It is time to move beyond one template, and begin to create others. In this section, we will see how to define <em>named templates</em> in one file, and then use them elsewhere. A <em>named template</em> (sometimes called a <em>partial</em> or a <em>subtemplate</em>) is simply a template defined inside of a file, and given a name. We’ll see two ways to create them, and a few different ways to use them.</p>
+<p>In the “Flow Control” section we introduced three actions for declaring and managing templates: <code>define</code>, <code>template</code>, and <code>block</code>. In this section, we’ll cover those three actions, and also introduce a special-purpose <code>include</code> function that works similarly to the <code>template</code> action.</p>
+<p>An important detail to keep in mind when naming templates: <strong>template names are global</strong>. If you declare two templates with the same name, whichever one is loaded last will be the one used. Because templates in subcharts are compiled together with top-level templates, you should be careful to name your templates with <em>chart-specific names</em>.</p>
+<p>One popular naming convention is to prefix each defined template with the name of the chart: <code>{{ define &quot;mychart.labels&quot; }}</code>. By using the specific chart name as a prefix we can avoid any conflicts that may arise due to two different charts that implement templates of the same name.</p>
+<h2 id="partials-and-_-files">Partials and <code>_</code> files</h2>
+<p>So far, we’ve used one file, and that one file has contained a single template. But Helm’s template language allows you to create named embedded templates, that can be accessed by name elsewhere.</p>
+<p>Before we get to the nuts-and-bolts of writing those templates, there is file naming convention that deserves mention:</p>
+<ul>
+<li>Most files in <code>templates/</code> are treated as if they contain Kubernetes manifests</li>
+<li>The <code>NOTES.txt</code> is one exception</li>
+<li>But files whose name begins with an underscore (<code>_</code>) are assumed to <em>not</em> have a manifest inside. These files are not rendered to Kubernetes object definitions, but are available everywhere within other chart templates for use.</li>
+</ul>
+<p>These files are used to store partials and helpers. In fact, when we first created <code>mychart</code>, we saw a file called <code>_helpers.tpl</code>. That file is the default location for template partials.</p>
+<h2 id="declaring-and-using-templates-with-define-and-template">Declaring and using templates with <code>define</code> and <code>template</code></h2>
+<p>The <code>define</code> action allows us to create a named template inside of a template file. Its syntax goes like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">{</span>{ define &quot;MY.NAME&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="co"># body of template here</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">{</span>{ end <span class="kw">}</span>}</a></code></pre></div>
+<p>For example, we can define a template to encapsulate a Kubernetes block of labels:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">{</span>{- define &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    <span class="fu">date:</span><span class="at"> </span><span class="kw">{</span>{ now | htmlDate <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="kw">{</span>{- end <span class="kw">}</span>}</a></code></pre></div>
+<p>Now we can embed this template inside of our existing ConfigMap, and then include it with the <code>template</code> action:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">{</span>{- define &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">    <span class="fu">date:</span><span class="at"> </span><span class="kw">{</span>{ now | htmlDate <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="kw">{</span>{- end <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb3-10" data-line-number="10">  <span class="kw">{</span>{- template &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb3-11" data-line-number="11"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb3-12" data-line-number="12">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb3-13" data-line-number="13">  <span class="kw">{</span><span class="fu">{- range $key, $val :</span><span class="at">= .Values.favorite </span><span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb3-14" data-line-number="14">  <span class="kw">{</span><span class="fu">{ $key }}:</span><span class="at"> </span><span class="kw">{</span>{ $val | quote <span class="kw">}}</span></a>
+<a class="sourceLine" id="cb3-15" data-line-number="15">  <span class="kw">{</span>{- end <span class="kw">}</span>}</a></code></pre></div>
+<p>When the template engine reads this file, it will store away the reference to <code>mychart.labels</code> until <code>template &quot;mychart.labels&quot;</code> is called. Then it will render that template inline. So the result will look like this:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> running-panda-configmap</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb4-8" data-line-number="8">    <span class="fu">date:</span><span class="at"> 2016-11-02</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb4-10" data-line-number="10">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb4-11" data-line-number="11">  <span class="fu">drink:</span><span class="at"> </span><span class="st">&quot;coffee&quot;</span></a>
+<a class="sourceLine" id="cb4-12" data-line-number="12">  <span class="fu">food:</span><span class="at"> </span><span class="st">&quot;pizza&quot;</span></a></code></pre></div>
+<p>Conventionally, Helm charts put these templates inside of a partials file, usually <code>_helpers.tpl</code>. Let’s move this function there:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">{</span>{/* Generate basic labels */<span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">{</span>{- define &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">    <span class="fu">date:</span><span class="at"> </span><span class="kw">{</span>{ now | htmlDate <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="kw">{</span>{- end <span class="kw">}</span>}</a></code></pre></div>
+<p>By convention, <code>define</code> functions should have a simple documentation block (<code>{{/* ... */}}</code>) describing what they do.</p>
+<p>Even though this definition is in <code>_helpers.tpl</code>, it can still be accessed in <code>configmap.yaml</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">  <span class="kw">{</span>{- template &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">  <span class="kw">{</span><span class="fu">{- range $key, $val :</span><span class="at">= .Values.favorite </span><span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9">  <span class="kw">{</span><span class="fu">{ $key }}:</span><span class="at"> </span><span class="kw">{</span>{ $val | quote <span class="kw">}}</span></a>
+<a class="sourceLine" id="cb6-10" data-line-number="10">  <span class="kw">{</span>{- end <span class="kw">}</span>}</a></code></pre></div>
+<p>As mentioned above, <strong>template names are global</strong>. As a result of this, if two templates are declared with the same name the last occurrence will be the one that is used. Since templates in subcharts are compiled together with top-level templates, it is best to name your templates with <em>chart specific names</em>. A popular naming convention is to prefix each defined template with the name of the chart: <code>{{ define &quot;mychart.labels&quot; }}</code>.</p>
+<h2 id="setting-the-scope-of-a-template">Setting the scope of a template</h2>
+<p>In the template we defined above, we did not use any objects. We just used functions. Let’s modify our defined template to include the chart name and chart version:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">{</span>{/* Generate basic labels */<span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw">{</span>{- define &quot;mychart.labels&quot; <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">    <span class="fu">date:</span><span class="at"> </span><span class="kw">{</span>{ now | htmlDate <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">    <span class="fu">chart:</span><span class="at"> </span><span class="kw">{</span>{ .Chart.Name <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">    <span class="fu">version:</span><span class="at"> </span><span class="kw">{</span>{ .Chart.Version <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="kw">{</span>{- end <span class="kw">}</span>}</a></code></pre></div>
+<p>If we render this, the result will not be what we expect:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> moldy-jaguar-configmap</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb8-7" data-line-number="7">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">    <span class="fu">date:</span><span class="at"> 2016-11-02</span></a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">    <span class="fu">chart:</span></a>
+<a class="sourceLine" id="cb8-10" data-line-number="10">    <span class="fu">version:</span></a></code></pre></div>
+<p>What happened to the name and version? They weren’t in the scope for our defined template. When a named template (created with <code>define</code>) is rendered, it will receive the scope passed in by the <code>template</code> call. In our example, we included the template like this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">{</span>{- template &quot;mychart.labels&quot; <span class="kw">}</span>}</a></code></pre></div>
+<p>No scope was passed in, so within the template we cannot access anything in <code>.</code>. This is easy enough to fix, though. We simply pass a scope to the template:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">  <span class="kw">{</span>{- template &quot;mychart.labels&quot; . <span class="kw">}</span>}</a></code></pre></div>
+<p>Note that we pass <code>.</code> at the end of the <code>template</code> call. We could just as easily pass <code>.Values</code> or <code>.Values.favorite</code> or whatever scope we want. But what we want is the top-level scope.</p>
+<p>Now when we execute this template with <code>helm install --dry-run --debug ./mychart</code>, we get this:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb11-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb11-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> plinking-anaco-configmap</span></a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">    <span class="fu">generator:</span><span class="at"> helm</span></a>
+<a class="sourceLine" id="cb11-8" data-line-number="8">    <span class="fu">date:</span><span class="at"> 2016-11-02</span></a>
+<a class="sourceLine" id="cb11-9" data-line-number="9">    <span class="fu">chart:</span><span class="at"> mychart</span></a>
+<a class="sourceLine" id="cb11-10" data-line-number="10">    <span class="fu">version:</span><span class="at"> 0.1.0</span></a></code></pre></div>
+<p>Now <code>{{ .Chart.Name }}</code> resolves to <code>mychart</code>, and <code>{{ .Chart.Version }}</code> resolves to <code>0.1.0</code>.</p>
+<h2 id="the-include-function">The <code>include</code> function</h2>
+<p>Say we’ve defined a simple template that looks like this:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">{</span>{- define &quot;mychart.app&quot; -<span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="fu">app_name:</span><span class="at"> </span><span class="kw">{</span>{ .Chart.Name <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3"><span class="fu">app_version:</span><span class="at"> </span><span class="st">&quot;{{ .Chart.Version }}+{{ .Release.Time.Seconds }}&quot;</span></a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="kw">{</span>{- end -<span class="kw">}</span>}</a></code></pre></div>
+<p>Now say I want to insert this both into the <code>labels:</code> section of my template, and also the <code>data:</code> section:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">    <span class="kw">{</span>{ template &quot;mychart.app&quot; .<span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb13-7" data-line-number="7"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb13-8" data-line-number="8">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb13-9" data-line-number="9">  <span class="kw">{</span><span class="fu">{- range $key, $val :</span><span class="at">= .Values.favorite </span><span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb13-10" data-line-number="10">  <span class="kw">{</span><span class="fu">{ $key }}:</span><span class="at"> </span><span class="kw">{</span>{ $val | quote <span class="kw">}}</span></a>
+<a class="sourceLine" id="cb13-11" data-line-number="11">  <span class="kw">{</span>{- end <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb13-12" data-line-number="12"><span class="kw">{</span>{ template &quot;mychart.app&quot; . <span class="kw">}</span>}</a></code></pre></div>
+<p>The output will not be what we expect:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb14-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> measly-whippet-configmap</span></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb14-7" data-line-number="7">    <span class="fu">app_name:</span><span class="at"> mychart</span></a>
+<a class="sourceLine" id="cb14-8" data-line-number="8"><span class="fu">app_version:</span><span class="at"> </span><span class="st">&quot;0.1.0+1478129847&quot;</span></a>
+<a class="sourceLine" id="cb14-9" data-line-number="9"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb14-10" data-line-number="10">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb14-11" data-line-number="11">  <span class="fu">drink:</span><span class="at"> </span><span class="st">&quot;coffee&quot;</span></a>
+<a class="sourceLine" id="cb14-12" data-line-number="12">  <span class="fu">food:</span><span class="at"> </span><span class="st">&quot;pizza&quot;</span></a>
+<a class="sourceLine" id="cb14-13" data-line-number="13">  <span class="fu">app_name:</span><span class="at"> mychart</span></a>
+<a class="sourceLine" id="cb14-14" data-line-number="14"><span class="fu">app_version:</span><span class="at"> </span><span class="st">&quot;0.1.0+1478129847&quot;</span></a></code></pre></div>
+<p>Note that the indentation on <code>app_version</code> is wrong in both places. Why? Because the template that is substituted in has the text aligned to the right. Because <code>template</code> is an action, and not a function, there is no way to pass the output of a <code>template</code> call to other functions; the data is simply inserted inline.</p>
+<p>To work around this case, Helm provides an alternative to <code>template</code> that will import the contents of a template into the present pipeline where it can be passed along to other functions in the pipeline.</p>
+<p>Here’s the example above, corrected to use <code>indent</code> to indent the <code>mychart_app</code> template correctly:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb15-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb15-6" data-line-number="6"><span class="kw">{</span>{ include &quot;mychart.app&quot; . | indent 4 <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb15-7" data-line-number="7"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb15-8" data-line-number="8">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb15-9" data-line-number="9">  <span class="kw">{</span><span class="fu">{- range $key, $val :</span><span class="at">= .Values.favorite </span><span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb15-10" data-line-number="10">  <span class="kw">{</span><span class="fu">{ $key }}:</span><span class="at"> </span><span class="kw">{</span>{ $val | quote <span class="kw">}}</span></a>
+<a class="sourceLine" id="cb15-11" data-line-number="11">  <span class="kw">{</span>{- end <span class="kw">}</span>}</a>
+<a class="sourceLine" id="cb15-12" data-line-number="12"><span class="kw">{</span>{ include &quot;mychart.app&quot; . | indent 2 <span class="kw">}</span>}</a></code></pre></div>
+<p>Now the produced YAML is correctly indented for each section:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> edgy-mole-configmap</span></a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">    <span class="fu">app_name:</span><span class="at"> mychart</span></a>
+<a class="sourceLine" id="cb16-8" data-line-number="8">    <span class="fu">app_version:</span><span class="at"> </span><span class="st">&quot;0.1.0+1478129987&quot;</span></a>
+<a class="sourceLine" id="cb16-9" data-line-number="9"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb16-10" data-line-number="10">  <span class="fu">myvalue:</span><span class="at"> </span><span class="st">&quot;Hello World&quot;</span></a>
+<a class="sourceLine" id="cb16-11" data-line-number="11">  <span class="fu">drink:</span><span class="at"> </span><span class="st">&quot;coffee&quot;</span></a>
+<a class="sourceLine" id="cb16-12" data-line-number="12">  <span class="fu">food:</span><span class="at"> </span><span class="st">&quot;pizza&quot;</span></a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">  <span class="fu">app_name:</span><span class="at"> mychart</span></a>
+<a class="sourceLine" id="cb16-14" data-line-number="14">  <span class="fu">app_version:</span><span class="at"> </span><span class="st">&quot;0.1.0+1478129987&quot;</span></a></code></pre></div>
+<blockquote>
+<p>It is considered preferable to use <code>include</code> over <code>template</code> in Helm templates simply so that the output formatting can be handled better for YAML documents.</p>
+</blockquote>
+<p>Sometimes we want to import content, but not as templates. That is, we want to import files verbatim. We can achieve this by accessing files through the <code>.Files</code> object described in the next section.</p>
+</body>
+</html>
+</div>

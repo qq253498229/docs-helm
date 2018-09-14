@@ -1,0 +1,56 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="creating-a-notes.txt-file">Creating a NOTES.txt File</h1>
+<p>In this section we are going to look at Helm’s tool for providing instructions to your chart users. At the end of a <code>chart install</code> or <code>chart upgrade</code>, Helm can print out a block of helpful information for users. This information is highly customizable using templates.</p>
+<p>To add installation notes to your chart, simply create a <code>templates/NOTES.txt</code> file. This file is plain text, but it is processed like as a template, and has all the normal template functions and objects available.</p>
+<p>Let’s create a simple <code>NOTES.txt</code> file:</p>
+<pre><code>Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get {{ .Release.Name }}
+</code></pre>
+<p>Now if we run <code>helm install ./mychart</code> we will see this message at the bottom:</p>
+<pre><code>RESOURCES:
+==&gt; v1/Secret
+NAME                   TYPE      DATA      AGE
+rude-cardinal-secret   Opaque    1         0s
+
+==&gt; v1/ConfigMap
+NAME                      DATA      AGE
+rude-cardinal-configmap   3         0s
+
+
+NOTES:
+Thank you for installing mychart.
+
+Your release is named rude-cardinal.
+
+To learn more about the release, try:
+
+  $ helm status rude-cardinal
+  $ helm get rude-cardinal</code></pre>
+<p>Using <code>NOTES.txt</code> this way is a great way to give your users detailed information about how to use their newly installed chart. Creating a <code>NOTES.txt</code> file is strongly recommended, though it is not required.</p>
+</body>
+</html>
+</div>

@@ -1,0 +1,216 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="subcharts-and-global-values">Subcharts and Global Values</h1>
+<p>To this point we have been working only with one chart. But charts can have dependencies, called <em>subcharts</em>, that also have their own values and templates. In this section we will create a subchart and see the different ways we can access values from within templates.</p>
+<p>Before we dive into the code, there are a few important details to learn about subcharts.</p>
+<ol type="1">
+<li>A subchart is considered “stand-alone”, which means a subchart can never explicitly depend on its parent chart.</li>
+<li>For that reason, a subchart cannot access the values of its parent.</li>
+<li>A parent chart can override values for subcharts.</li>
+<li>Helm has a concept of <em>global values</em> that can be accessed by all charts.</li>
+</ol>
+<p>As we walk through the examples in this section, many of these concepts will become clearer.</p>
+<h2 id="creating-a-subchart">Creating a Subchart</h2>
+<p>For these exercises, we’ll start with the <code>mychart/</code> chart we created at the beginning of this guide, and we’ll add a new chart inside of it.</p>
+<pre class="console"><code>$ cd mychart/charts
+$ helm create mysubchart
+Creating mysubchart
+$ rm -rf mysubchart/templates/*.*</code></pre>
+<p>Notice that just as before, we deleted all of the base templates so that we can start from scratch. In this guide, we are focused on how templates work, not on managing dependencies. But the <a href="../charts.html">Charts Guide</a> has more information on how subcharts work.</p>
+<h2 id="adding-values-and-a-template-to-the-subchart">Adding Values and a Template to the Subchart</h2>
+<p>Next, let’s create a simple template and values file for our <code>mysubchart</code> chart. There should already be a <code>values.yaml</code> in <code>mychart/charts/mysubchart</code>. We’ll set it up like this:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">dessert:</span><span class="at"> cake</span></a></code></pre></div>
+<p>Next, we’ll create a new ConfigMap template in <code>mychart/charts/mysubchart/templates/configmap.yaml</code>:</p>
+<pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-cfgmap2
+data:
+  dessert: {{ .Values.dessert }}</code></pre>
+<p>Because every subchart is a <em>stand-alone chart</em>, we can test <code>mysubchart</code> on its own:</p>
+<pre class="console"><code>$ helm install --dry-run --debug mychart/charts/mysubchart
+SERVER: &quot;localhost:44134&quot;
+CHART PATH: /Users/mattbutcher/Code/Go/src/k8s.io/helm/_scratch/mychart/charts/mysubchart
+NAME:   newbie-elk
+TARGET NAMESPACE:   default
+CHART:  mysubchart 0.1.0
+MANIFEST:
+---
+# Source: mysubchart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: newbie-elk-cfgmap2
+data:
+  dessert: cake</code></pre>
+<h2 id="overriding-values-from-a-parent-chart">Overriding Values from a Parent Chart</h2>
+<p>Our original chart, <code>mychart</code> is now the <em>parent</em> chart of <code>mysubchart</code>. This relationship is based entirely on the fact that <code>mysubchart</code> is within <code>mychart/charts</code>.</p>
+<p>Because <code>mychart</code> is a parent, we can specify configuration in <code>mychart</code> and have that configuration pushed into <code>mysubchart</code>. For example, we can modify <code>mychart/values.yaml</code> like this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="fu">favorite:</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="fu">drink:</span><span class="at"> coffee</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="fu">food:</span><span class="at"> pizza</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="fu">pizzaToppings:</span></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="kw">-</span> mushrooms</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">  <span class="kw">-</span> cheese</a>
+<a class="sourceLine" id="cb5-7" data-line-number="7">  <span class="kw">-</span> peppers</a>
+<a class="sourceLine" id="cb5-8" data-line-number="8">  <span class="kw">-</span> onions</a>
+<a class="sourceLine" id="cb5-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb5-10" data-line-number="10"><span class="fu">mysubchart:</span></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11">  <span class="fu">dessert:</span><span class="at"> ice cream</span></a></code></pre></div>
+<p>Note the last two lines. Any directives inside of the <code>mysubchart</code> section will be sent to the <code>mysubchart</code> chart. So if we run <code>helm install --dry-run --debug mychart</code>, one of the things we will see is the <code>mysubchart</code> ConfigMap:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co"># Source: mychart/charts/mysubchart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> unhinged-bee-cfgmap2</span></a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">  <span class="fu">dessert:</span><span class="at"> ice cream</span></a></code></pre></div>
+<p>The value at the top level has now overridden the value of the subchart.</p>
+<p>There’s an important detail to notice here. We didn’t change the template of <code>mychart/charts/mysubchart/templates/configmap.yaml</code> to point to <code>.Values.mysubchart.dessert</code>. From that template’s perspective, the value is still located at <code>.Values.dessert</code>. As the template engine passes values along, it sets the scope. So for the <code>mysubchart</code> templates, only values specifically for <code>mysubchart</code> will be available in <code>.Values</code>.</p>
+<p>Sometimes, though, you do want certain values to be available to all of the templates. This is accomplished using global chart values.</p>
+<h2 id="global-chart-values">Global Chart Values</h2>
+<p>Global values are values that can be accessed from any chart or subchart by exactly the same name. Globals require explicit declaration. You can’t use an existing non-global as if it were a global.</p>
+<p>The Values data type has a reserved section called <code>Values.global</code> where global values can be set. Let’s set one in our <code>mychart/values.yaml</code> file.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">favorite:</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="fu">drink:</span><span class="at"> coffee</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="fu">food:</span><span class="at"> pizza</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="fu">pizzaToppings:</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="kw">-</span> mushrooms</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">  <span class="kw">-</span> cheese</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">  <span class="kw">-</span> peppers</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">  <span class="kw">-</span> onions</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb7-10" data-line-number="10"><span class="fu">mysubchart:</span></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11">  <span class="fu">dessert:</span><span class="at"> ice cream</span></a>
+<a class="sourceLine" id="cb7-12" data-line-number="12"></a>
+<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="fu">global:</span></a>
+<a class="sourceLine" id="cb7-14" data-line-number="14">  <span class="fu">salad:</span><span class="at"> caesar</span></a></code></pre></div>
+<p>Because of the way globals work, both <code>mychart/templates/configmap.yaml</code> and <code>mysubchart/templates/configmap.yaml</code> should be able to access that value as <code>{{ .Values.global.salad}}</code>.</p>
+<p><code>mychart/templates/configmap.yaml</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-configmap</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">  <span class="fu">salad:</span><span class="at"> </span><span class="kw">{</span>{ .Values.global.salad <span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<p><code>mysubchart/templates/configmap.yaml</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-cfgmap2</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="fu">dessert:</span><span class="at"> </span><span class="kw">{</span>{ .Values.dessert <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">  <span class="fu">salad:</span><span class="at"> </span><span class="kw">{</span>{ .Values.global.salad <span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<p>Now if we run a dry run install, we’ll see the same value in both outputs:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co"># Source: mychart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">  <span class="fu">name:</span><span class="at"> silly-snake-configmap</span></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7">  <span class="fu">salad:</span><span class="at"> caesar</span></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb10-9" data-line-number="9"><span class="ot">---</span></a>
+<a class="sourceLine" id="cb10-10" data-line-number="10"><span class="co"># Source: mychart/charts/mysubchart/templates/configmap.yaml</span></a>
+<a class="sourceLine" id="cb10-11" data-line-number="11"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb10-12" data-line-number="12"><span class="fu">kind:</span><span class="at"> ConfigMap</span></a>
+<a class="sourceLine" id="cb10-13" data-line-number="13"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb10-14" data-line-number="14">  <span class="fu">name:</span><span class="at"> silly-snake-cfgmap2</span></a>
+<a class="sourceLine" id="cb10-15" data-line-number="15"><span class="fu">data:</span></a>
+<a class="sourceLine" id="cb10-16" data-line-number="16">  <span class="fu">dessert:</span><span class="at"> ice cream</span></a>
+<a class="sourceLine" id="cb10-17" data-line-number="17">  <span class="fu">salad:</span><span class="at"> caesar</span></a></code></pre></div>
+<p>Globals are useful for passing information like this, though it does take some planning to make sure the right templates are configured to use globals.</p>
+<h2 id="sharing-templates-with-subcharts">Sharing Templates with Subcharts</h2>
+<p>Parent charts and subcharts can share templates. Any defined block in any chart is available to other charts.</p>
+<p>For example, we can define a simple template like this:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="kw">{</span><span class="fu">{- define &quot;labels&quot; }}from:</span><span class="at"> mychart{{ end </span><span class="kw">}</span>}</a></code></pre></div>
+<p>Recall how the labels on templates are <em>globally shared</em>. Thus, the <code>labels</code> chart can be included from any other chart.</p>
+<p>While chart developers have a choice between <code>include</code> and <code>template</code>, one advantage of using <code>include</code> is that <code>include</code> can dynamically reference templates:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw">{</span>{ include $mytemplate <span class="kw">}</span>}</a></code></pre></div>
+<p>The above will dereference <code>$mytemplate</code>. The <code>template</code> function, in contrast, will only accept a string literal.</p>
+<h2 id="avoid-using-blocks">Avoid Using Blocks</h2>
+<p>The Go template language provides a <code>block</code> keyword that allows developers to provide a default implementation which is overridden later. In Helm charts, blocks are not the best tool for overriding because if multiple implementations of the same block are provided, the one selected is unpredictable.</p>
+<p>The suggestion is to instead use <code>include</code>.</p>
+</body>
+</html>
+</div>

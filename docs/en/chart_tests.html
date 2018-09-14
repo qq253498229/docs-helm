@@ -1,0 +1,84 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="chart-tests">Chart Tests</h1>
+<p>A chart contains a number of Kubernetes resources and components that work together. As a chart author, you may want to write some tests that validate that your chart works as expected when it is installed. These tests also help the chart consumer understand what your chart is supposed to do.</p>
+<p>A <strong>test</strong> in a helm chart lives under the <code>templates/</code> directory and is a pod definition that specifies a container with a given command to run. The container should exit successfully (exit 0) for a test to be considered a success. The pod definition must contain one of the helm test hook annotations: <code>helm.sh/hook: test-success</code> or <code>helm.sh/hook: test-failure</code>.</p>
+<p>Example tests: - Validate that your configuration from the values.yaml file was properly injected. - Make sure your username and password work correctly - Make sure an incorrect username and password does not work - Assert that your services are up and correctly load balancing - etc.</p>
+<p>You can run the pre-defined tests in Helm on a release using the command <code>helm test &lt;RELEASE_NAME&gt;</code>. For a chart consumer, this is a great way to sanity check that their release of a chart (or application) works as expected.</p>
+<h2 id="a-breakdown-of-the-helm-test-hooks">A Breakdown of the Helm Test Hooks</h2>
+<p>In Helm, there are two test hooks: <code>test-success</code> and <code>test-failure</code></p>
+<p><code>test-success</code> indicates that test pod should complete successfully. In other words, the containers in the pod should exit 0. <code>test-failure</code> is a way to assert that a test pod should not complete successfully. If the containers in the pod do not exit 0, that indicates success.</p>
+<h2 id="example-test">Example Test</h2>
+<p>Here is an example of a helm test pod definition in an example mariadb chart:</p>
+<pre><code>mariadb/
+  Chart.yaml
+  README.md
+  values.yaml
+  charts/
+  templates/
+  templates/tests/test-mariadb-connection.yaml</code></pre>
+<p>In <code>wordpress/templates/tests/test-mariadb-connection.yaml</code>:</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: &quot;{{ .Release.Name }}-credentials-test&quot;
+  annotations:
+    &quot;helm.sh/hook&quot;: test-success
+spec:
+  containers:
+  - name: {{ .Release.Name }}-credentials-test
+    image: {{ .Values.image }}
+    env:
+      - name: MARIADB_HOST
+        value: {{ template &quot;mariadb.fullname&quot; . }}
+      - name: MARIADB_PORT
+        value: &quot;3306&quot;
+      - name: WORDPRESS_DATABASE_NAME
+        value: {{ default &quot;&quot; .Values.mariadb.mariadbDatabase | quote }}
+      - name: WORDPRESS_DATABASE_USER
+        value: {{ default &quot;&quot; .Values.mariadb.mariadbUser | quote }}
+      - name: WORDPRESS_DATABASE_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: {{ template &quot;mariadb.fullname&quot; . }}
+            key: mariadb-password
+    command: [&quot;sh&quot;, &quot;-c&quot;, &quot;mysql --host=$MARIADB_HOST --port=$MARIADB_PORT --user=$WORDPRESS_DATABASE_USER --password=$WORDPRESS_DATABASE_PASSWORD&quot;]
+  restartPolicy: Never</code></pre>
+<h2 id="steps-to-run-a-test-suite-on-a-release">Steps to Run a Test Suite on a Release</h2>
+<ol type="1">
+<li><code>$ helm install mariadb</code></li>
+</ol>
+<pre><code>NAME:   quirky-walrus
+LAST DEPLOYED: Mon Feb 13 13:50:43 2017
+NAMESPACE: default
+STATUS: DEPLOYED</code></pre>
+<ol start="2" type="1">
+<li><code>$ helm test quirky-walrus</code></li>
+</ol>
+<pre><code>RUNNING: quirky-walrus-credentials-test
+SUCCESS: quirky-walrus-credentials-test</code></pre>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>You can define as many tests as you would like in a single yaml file or spread across several yaml files in the <code>templates/</code> directory</li>
+<li>You are welcome to nest your test suite under a <code>tests/</code> directory like <code>&lt;chart-name&gt;/templates/tests/</code> for more isolation</li>
+</ul>
+</body>
+</html>
+</div>

@@ -1,0 +1,82 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="quickstart-guide">Quickstart Guide</h1>
+<p>This guide covers how you can quickly get started using Helm.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>The following prerequisites are required for a successful and properly secured use of Helm.</p>
+<ol type="1">
+<li>A Kubernetes cluster</li>
+<li>Deciding what security configurations to apply to your installation, if any</li>
+<li>Installing and configuring Helm and Tiller, the cluster-side service.</li>
+</ol>
+<h3 id="install-kubernetes-or-have-access-to-a-cluster">Install Kubernetes or have access to a cluster</h3>
+<ul>
+<li>You must have Kubernetes installed. For the latest release of Helm, we recommend the latest stable release of Kubernetes, which in most cases is the second-latest minor release.</li>
+<li>You should also have a local configured copy of <code>kubectl</code>.</li>
+</ul>
+<p>NOTE: Kubernetes versions prior to 1.6 have limited or no support for role-based access controls (RBAC).</p>
+<p>Helm will figure out where to install Tiller by reading your Kubernetes configuration file (usually <code>$HOME/.kube/config</code>). This is the same file that <code>kubectl</code> uses.</p>
+<p>To find out which cluster Tiller would install to, you can run <code>kubectl config current-context</code> or <code>kubectl cluster-info</code>.</p>
+<pre class="console"><code>$ kubectl config current-context
+my-cluster</code></pre>
+<h3 id="understand-your-security-context">Understand your Security Context</h3>
+<p>As with all powerful tools, ensure you are installing it correctly for your scenario.</p>
+<p>If you’re using Helm on a cluster that you completely control, like minikube or a cluster on a private network in which sharing is not a concern, the default installation – which applies no security configuration – is fine, and it’s definitely the easiest. To install Helm without additional security steps, <a href="#Install-Helm">install Helm</a> and then <a href="#initialize-helm-and-install-tiller">initialize Helm</a>.</p>
+<p>However, if your cluster is exposed to a larger network or if you share your cluster with others – production clusters fall into this category – you must take extra steps to secure your installation to prevent careless or malicious actors from damaging the cluster or its data. To apply configurations that secure Helm for use in production environments and other multi-tenant scenarios, see <a href="securing_installation.html">Securing a Helm installation</a></p>
+<p>If your cluster has Role-Based Access Control (RBAC) enabled, you may want to <a href="rbac.html">configure a service account and rules</a> before proceeding.</p>
+<h2 id="install-helm">Install Helm</h2>
+<p>Download a binary release of the Helm client. You can use tools like <code>homebrew</code>, or look at <a href="https://github.com/kubernetes/helm/releases">the official releases page</a>.</p>
+<p>For more details, or for other options, see <a href="install.html">the installation guide</a>.</p>
+<h2 id="initialize-helm-and-install-tiller">Initialize Helm and Install Tiller</h2>
+<p>Once you have Helm ready, you can initialize the local CLI and also install Tiller into your Kubernetes cluster in one step:</p>
+<pre class="console"><code>$ helm init</code></pre>
+<p>This will install Tiller into the Kubernetes cluster you saw with <code>kubectl config current-context</code>.</p>
+<p><strong>TIP:</strong> Want to install into a different cluster? Use the <code>--kube-context</code> flag.</p>
+<p><strong>TIP:</strong> When you want to upgrade Tiller, just run <code>helm init --upgrade</code>.</p>
+<p>By default, when Tiller is installed, it does not have authentication enabled. To learn more about configuring strong TLS authentication for Tiller, consult <a href="tiller_ssl.html">the Tiller TLS guide</a>.</p>
+<h2 id="install-an-example-chart">Install an Example Chart</h2>
+<p>To install a chart, you can run the <code>helm install</code> command. Helm has several ways to find and install a chart, but the easiest is to use one of the official <code>stable</code> charts.</p>
+<pre class="console"><code>$ helm repo update              # Make sure we get the latest list of charts
+$ helm install stable/mysql
+Released smiling-penguin</code></pre>
+<p>In the example above, the <code>stable/mysql</code> chart was released, and the name of our new release is <code>smiling-penguin</code>. You get a simple idea of the features of this MySQL chart by running <code>helm inspect stable/mysql</code>.</p>
+<p>Whenever you install a chart, a new release is created. So one chart can be installed multiple times into the same cluster. And each can be independently managed and upgraded.</p>
+<p>The <code>helm install</code> command is a very powerful command with many capabilities. To learn more about it, check out the <a href="using_helm.html">Using Helm Guide</a></p>
+<h2 id="learn-about-releases">Learn About Releases</h2>
+<p>It’s easy to see what has been released using Helm:</p>
+<pre class="console"><code>$ helm ls
+NAME             VERSION   UPDATED                   STATUS    CHART
+smiling-penguin  1         Wed Sep 28 12:59:46 2016  DEPLOYED  mysql-0.1.0</code></pre>
+<p>The <code>helm list</code> function will show you a list of all deployed releases.</p>
+<h2 id="uninstall-a-release">Uninstall a Release</h2>
+<p>To uninstall a release, use the <code>helm delete</code> command:</p>
+<pre class="console"><code>$ helm delete smiling-penguin
+Removed smiling-penguin</code></pre>
+<p>This will uninstall <code>smiling-penguin</code> from Kubernetes, but you will still be able to request information about that release:</p>
+<pre class="console"><code>$ helm status smiling-penguin
+Status: DELETED
+...</code></pre>
+<p>Because Helm tracks your releases even after you’ve deleted them, you can audit a cluster’s history, and even undelete a release (with <code>helm rollback</code>).</p>
+<h2 id="reading-the-help-text">Reading the Help Text</h2>
+<p>To learn more about the available Helm commands, use <code>helm help</code> or type a command followed by the <code>-h</code> flag:</p>
+<pre class="console"><code>$ helm get -h</code></pre>
+</body>
+</html>
+</div>

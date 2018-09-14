@@ -1,0 +1,137 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="developers-guide">Developers Guide</h1>
+<p>This guide explains how to set up your environment for developing on Helm and Tiller.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>The latest version of Go</li>
+<li>The latest version of Glide</li>
+<li>A Kubernetes cluster w/ kubectl (optional)</li>
+<li>The gRPC toolchain</li>
+<li>Git</li>
+</ul>
+<h2 id="building-helmtiller">Building Helm/Tiller</h2>
+<p>We use Make to build our programs. The simplest way to get started is:</p>
+<pre class="console"><code>$ make bootstrap build</code></pre>
+<p>NOTE: This will fail if not running from the path <code>$GOPATH/src/k8s.io/helm</code>. The directory <code>k8s.io</code> should not be a symlink or <code>build</code> will not find the relevant packages.</p>
+<p>This will build both Helm and Tiller. <code>make bootstrap</code> will attempt to install certain tools if they are missing.</p>
+<p>To run all the tests (without running the tests for <code>vendor/</code>), run <code>make test</code>.</p>
+<p>To run Helm and Tiller locally, you can run <code>bin/helm</code> or <code>bin/tiller</code>.</p>
+<ul>
+<li>Helm and Tiller are known to run on macOS and most Linuxes, including Alpine.</li>
+<li>Tiller must have access to a Kubernetes cluster. It learns about the cluster by examining the Kube config files that <code>kubectl</code> uses.</li>
+</ul>
+<h3 id="man-pages">Man pages</h3>
+<p>Man pages and Markdown documentation are already pre-built in <code>docs/</code>. You may regenerate documentation using <code>make docs</code>.</p>
+<p>To expose the Helm man pages to your <code>man</code> client, you can put the files in your <code>$MANPATH</code>:</p>
+<pre><code>$ export MANPATH=$GOPATH/src/k8s.io/helm/docs/man:$MANPATH
+$ man helm</code></pre>
+<h2 id="grpc-and-protobuf">gRPC and Protobuf</h2>
+<p>Helm and Tiller communicate using gRPC. To get started with gRPC, you will need to…</p>
+<ul>
+<li>Install <code>protoc</code> for compiling protobuf files. Releases are <a href="https://github.com/google/protobuf/releases">here</a></li>
+<li>Run Helm’s <code>make bootstrap</code> to generate the <code>protoc-gen-go</code> plugin and place it in <code>bin/</code>.</li>
+</ul>
+<p>Note that you need to be on protobuf 3.2.0 (<code>protoc --version</code>). The version of <code>protoc-gen-go</code> is tied to the version of gRPC used in Kubernetes. So the plugin is maintained locally.</p>
+<p>While the gRPC and ProtoBuf specs remain silent on indentation, we require that the indentation style matches the Go format specification. Namely, protocol buffers should use tab-based indentation and rpc declarations should follow the style of Go function declarations.</p>
+<h3 id="the-helm-api-hapi">The Helm API (HAPI)</h3>
+<p>We use gRPC as an API layer. See <code>pkg/proto/hapi</code> for the generated Go code, and <code>_proto</code> for the protocol buffer definitions.</p>
+<p>To regenerate the Go files from the protobuf source, <code>make protoc</code>.</p>
+<h2 id="docker-images">Docker Images</h2>
+<p>To build Docker images, use <code>make docker-build</code>.</p>
+<p>Pre-build images are already available in the official Kubernetes Helm GCR registry.</p>
+<h2 id="running-a-local-cluster">Running a Local Cluster</h2>
+<p>For development, we highly recommend using the <a href="https://github.com/kubernetes/minikube">Kubernetes Minikube</a> developer-oriented distribution. Once this is installed, you can use <code>helm init</code> to install into the cluster. Note that version of tiller you’re using for development may not be available in Google Cloud Container Registry. If you’re getting image pull errors, you can override the version of Tiller. Example:</p>
+<pre class="console"><code>helm init --tiller-image=gcr.io/kubernetes-helm/tiller:2.7.2</code></pre>
+<p>Or use the latest version:</p>
+<pre class="console"><code>helm init --canary-image</code></pre>
+<p>For developing on Tiller, it is sometimes more expedient to run Tiller locally instead of packaging it into an image and running it in-cluster. You can do this by telling the Helm client to us a local instance.</p>
+<pre class="console"><code>$ make build
+$ bin/tiller</code></pre>
+<p>And to configure the Helm client, use the <code>--host</code> flag or export the <code>HELM_HOST</code> environment variable:</p>
+<pre class="console"><code>$ export HELM_HOST=localhost:44134
+$ helm install foo</code></pre>
+<p>(Note that you do not need to use <code>helm init</code> when you are running Tiller directly)</p>
+<p>Tiller should run on any &gt;= 1.3 Kubernetes cluster.</p>
+<h2 id="contribution-guidelines">Contribution Guidelines</h2>
+<p>We welcome contributions. This project has set up some guidelines in order to ensure that (a) code quality remains high, (b) the project remains consistent, and (c) contributions follow the open source legal requirements. Our intent is not to burden contributors, but to build elegant and high-quality open source code so that our users will benefit.</p>
+<p>Make sure you have read and understood the main CONTRIBUTING guide:</p>
+<p>https://github.com/kubernetes/helm/blob/master/CONTRIBUTING.md</p>
+<h3 id="structure-of-the-code">Structure of the Code</h3>
+<p>The code for the Helm project is organized as follows:</p>
+<ul>
+<li>The individual programs are located in <code>cmd/</code>. Code inside of <code>cmd/</code> is not designed for library re-use.</li>
+<li>Shared libraries are stored in <code>pkg/</code>.</li>
+<li>The raw ProtoBuf files are stored in <code>_proto/hapi</code> (where <code>hapi</code> stands for the Helm Application Programming Interface).</li>
+<li>The Go files generated from the <code>proto</code> definitions are stored in <code>pkg/proto</code>.</li>
+<li>The <code>scripts/</code> directory contains a number of utility scripts. Most of these are used by the CI/CD pipeline.</li>
+<li>The <code>rootfs/</code> folder is used for Docker-specific files.</li>
+<li>The <code>docs/</code> folder is used for documentation and examples.</li>
+</ul>
+<p>Go dependencies are managed with <a href="https://github.com/Masterminds/glide">Glide</a> and stored in the <code>vendor/</code> directory.</p>
+<h3 id="git-conventions">Git Conventions</h3>
+<p>We use Git for our version control system. The <code>master</code> branch is the home of the current development candidate. Releases are tagged.</p>
+<p>We accept changes to the code via GitHub Pull Requests (PRs). One workflow for doing this is as follows:</p>
+<ol type="1">
+<li>Go to your <code>$GOPATH/src/k8s.io</code> directory and <code>git clone</code> the <code>github.com/kubernetes/helm</code> repository.</li>
+<li>Fork that repository into your GitHub account</li>
+<li>Add your repository as a remote for <code>$GOPATH/src/k8s.io/helm</code></li>
+<li>Create a new working branch (<code>git checkout -b feat/my-feature</code>) and do your work on that branch.</li>
+<li>When you are ready for us to review, push your branch to GitHub, and then open a new pull request with us.</li>
+</ol>
+<p>For Git commit messages, we follow the <a href="http://karma-runner.github.io/0.13/dev/git-commit-msg.html">Semantic Commit Messages</a>:</p>
+<pre><code>fix(helm): add --foo flag to &#39;helm install&#39;
+
+When &#39;helm install --foo bar&#39; is run, this will print &quot;foo&quot; in the
+output regardless of the outcome of the installation.
+
+Closes #1234</code></pre>
+<p>Common commit types:</p>
+<ul>
+<li>fix: Fix a bug or error</li>
+<li>feat: Add a new feature</li>
+<li>docs: Change documentation</li>
+<li>test: Improve testing</li>
+<li>ref: refactor existing code</li>
+</ul>
+<p>Common scopes:</p>
+<ul>
+<li>helm: The Helm CLI</li>
+<li>tiller: The Tiller server</li>
+<li>proto: Protobuf definitions</li>
+<li>pkg/lint: The lint package. Follow a similar convention for any package</li>
+<li><code>*</code>: two or more scopes</li>
+</ul>
+<p>Read more: - The <a href="https://github.com/deis/workflow/blob/master/src/contributing/submitting-a-pull-request.html">Deis Guidelines</a> were the inspiration for this section. - Karma Runner <a href="http://karma-runner.github.io/0.13/dev/git-commit-msg.html">defines</a> the semantic commit message idea.</p>
+<h3 id="go-conventions">Go Conventions</h3>
+<p>We follow the Go coding style standards very closely. Typically, running <code>go fmt</code> will make your code beautiful for you.</p>
+<p>We also typically follow the conventions recommended by <code>go lint</code> and <code>gometalinter</code>. Run <code>make test-style</code> to test the style conformance.</p>
+<p>Read more:</p>
+<ul>
+<li>Effective Go <a href="https://golang.org/doc/effective_go.html#formatting">introduces formatting</a>.</li>
+<li>The Go Wiki has a great article on <a href="https://github.com/golang/go/wiki/CodeReviewComments">formatting</a>.</li>
+</ul>
+<h3 id="protobuf-conventions">Protobuf Conventions</h3>
+<p>Because this project is largely Go code, we format our Protobuf files as closely to Go as possible. There are currently no real formatting rules or guidelines for Protobuf, but as they emerge, we may opt to follow those instead.</p>
+<p>Standards: - Tabs for indentation, not spaces. - Spacing rules follow Go conventions (curly braces at line end, spaces around operators).</p>
+<p>Conventions: - Files should specify their package with <code>option go_package = &quot;...&quot;;</code> - Comments should translate into good Go code comments (since <code>protoc</code> copies comments into the destination source code file). - RPC functions are defined in the same file as their request/response messages. - Deprecated RPCs, messages, and fields are marked deprecated in the comments (<code>// UpdateFoo   DEPRECATED updates a foo.</code>).</p>
+</body>
+</html>
+</div>

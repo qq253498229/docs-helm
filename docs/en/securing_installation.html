@@ -1,0 +1,153 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="securing-your-helm-installation">Securing your Helm Installation</h1>
+<p>Helm is a powerful and flexible package-management and operations tool for Kubernetes. Installing it using the default installation command – <code>helm init</code> – quickly and easily installs <strong>Tiller</strong>, the server-side component with which Helm corresponds.</p>
+<p>This default installation applies <strong><em>no security configurations</em></strong>, however. It’s completely appropriate to use this type of installation when you are working against a cluster with no or very few security concerns, such as local development with Minikube or with a cluster that is well-secured in a private network with no data-sharing or no other users or teams. If this is the case, then the default installation is fine, but remember: With great power comes great responsibility. Always use due diligence when deciding to use the default installation.</p>
+<h2 id="who-needs-security-configurations">Who Needs Security Configurations?</h2>
+<p>For the following types of clusters we strongly recommend that you apply the proper security configurations to Helm and Tiller to ensure the safety of the cluster, the data in it, and the network to which it is connected.</p>
+<ul>
+<li>Clusters that are exposed to uncontrolled network environments: either untrusted network actors can access the cluster, or untrusted applications that can access the network environment.</li>
+<li>Clusters that are for many people to use – <em>multitenant</em> clusters – as a shared environment</li>
+<li>Clusters that have access to or use high-value data or networks of any type</li>
+</ul>
+<p>Often, environments like these are referred to as <em>production grade</em> or <em>production quality</em> because the damage done to any company by misuse of the cluster can be profound for either customers, the company itself, or both. Once the risk of damage becomes high enough, you need to ensure the integrity of your cluster no matter what the actual risk.</p>
+<p>To configure your installation properly for your environment, you must:</p>
+<ul>
+<li>Understand the security context of your cluster</li>
+<li>Choose the Best Practices you should apply to your helm installation</li>
+</ul>
+<p>The following assumes you have a Kubernetes configuration file (a <em>kubeconfig</em> file) or one was given to you to access a cluster.</p>
+<h2 id="understanding-the-security-context-of-your-cluster">Understanding the Security Context of your Cluster</h2>
+<p><code>helm init</code> installs Tiller into the cluster in the <code>kube-system</code> namespace and without any RBAC rules applied. This is appropriate for local development and other private scenarios because it enables you to be productive immediately. It also enables you to continue running Helm with existing Kubernetes clusters that do not have role-based access control (RBAC) support until you can move your workloads to a more recent Kubernetes version.</p>
+<p>There are four main areas to consider when securing a tiller installation:</p>
+<ol type="1">
+<li>Role-based access control, or RBAC</li>
+<li>Tiller’s gRPC endpoint and its usage by Helm</li>
+<li>Tiller release information</li>
+<li>Helm charts</li>
+</ol>
+<h3 id="rbac">RBAC</h3>
+<p>Recent versions of Kubernetes employ a <a href="https://en.wikipedia.org/wiki/Role-based_access_control">role-based access control (or RBAC)</a> system (as do modern operating systems) to help mitigate the damage that can be done if credentials are misused or bugs exist. Even where an identity is hijacked, the identity has only so many permissions to a controlled space. This effectively adds a layer of security to limit the scope of any attack with that identity.</p>
+<p>Helm and Tiller are designed to install, remove, and modify logical applications that can contain many services interacting together. As a result, often its usefulness involves cluster-wide operations, which in a multitenant cluster means that great care must be taken with access to a cluster-wide Tiller installation to prevent improper activity.</p>
+<p>Specific users and teams – developers, operators, system and network administrators – will need their own portion of the cluster in which they can use Helm and Tiller without risking other portions of the cluster. This means using a Kubernetes cluster with RBAC enabled and Tiller configured to enforce them. For more information about using RBAC in Kubernetes, see <a href="rbac.html">Using RBAC Authorization</a>.</p>
+<h4 id="tiller-and-user-permissions">Tiller and User Permissions</h4>
+<p>Tiller in its current form does not provide a way to map user credentials to specific permissions within Kubernetes. When Tiller is running inside of the cluster, it operates with the permissions of its service account. If no service account name is supplied to Tiller, it runs with the default service account for that namespace. This means that all Tiller operations on that server are executed using the Tiller pod’s credentials and permissions.</p>
+<p>To properly limit what Tiller itself can do, the standard Kubernetes RBAC mechanisms must be attached to Tiller, including Roles and RoleBindings that place explicit limits on what things a Tiller instance can install, and where.</p>
+<p>This situation may change in the future. While the community has several methods that might address this, at the moment performing actions using the rights of the client, instead of the rights of Tiller, is contingent upon the outcome of the Pod Identity Working Group, which has taken on the task of solving the problem in a general way.</p>
+<h3 id="the-tiller-grpc-endpoint-and-tls">The Tiller gRPC Endpoint and TLS</h3>
+<p>In the default installation the gRPC endpoint that Tiller offers is available inside the cluster (not external to the cluster) without authentication configuration applied. Without applying authentication, any process in the cluster can use the gRPC endpoint to perform operations inside the cluster. In a local or secured private cluster, this enables rapid usage and is normal. (When running outside the cluster, Helm authenticates through the Kubernetes API server to reach Tiller, leveraging existing Kubernetes authentication support.)</p>
+<p>Shared and production clusters – for the most part – should use Helm 2.7.2 at a minimum and configure TLS for each Tiller gRPC endpoint to ensure that within the cluster usage of gRPC endpoints is only for the properly authenticated identity for that endpoint. Doing so enables any number of Tiller instances to be deployed in any number of namespaces and yet no unauthenticated usage of any gRPC endpoint is possible. Finally, use Helm <code>init</code> with the <code>--tiller-tls-verify</code> option to install Tiller with TLS enabled and to verify remote certificates, and all other Helm commands should use the <code>--tls</code> option.</p>
+<p>For more information about the proper steps to configure Tiller and use Helm properly with TLS configured, see <a href="tiller_ssl.html">Using SSL between Helm and Tiller</a>.</p>
+<p>When Helm clients are connecting from outside of the cluster, the security between the Helm client and the API server is managed by Kubernetes itself. You may want to ensure that this link is secure. Note that if you are using the TLS configuration recommended above, not even the Kubernetes API server has access to the encrypted messages between the client and Tiller.</p>
+<h3 id="tillers-release-information">Tiller’s Release Information</h3>
+<p>For historical reasons, Tiller stores its release information in ConfigMaps. We suggest changing the default to Secrets.</p>
+<p>Secrets are the Kubernetes accepted mechanism for saving configuration data that is considered sensitive. While secrets don’t themselves offer many protections, Kubernetes cluster management software often treats them differently than other objects. Thus, we suggest using secrets to store releases.</p>
+<p>Enabling this feature currently requires setting the <code>--storage=secret</code> flag in the tiller-deploy deployment. This entails directly modifying the deployment or using <code>helm init --override 'spec.template.spec.containers[0].command'='{/tiller,--storage=secret}'</code>, as no helm init flag is currently available to do this for you.</p>
+<h3 id="thinking-about-charts">Thinking about Charts</h3>
+<p>Because of the relative longevity of Helm, the Helm chart ecosystem evolved without the immediate concern for cluster-wide control, and especially in the developer space this makes complete sense. However, charts are a kind of package that not only installs containers you may or may not have validated yourself, but it may also install into more than one namespace.</p>
+<p>As with all shared software, in a controlled or shared environment you must validate all software you install yourself <em>before</em> you install it. If you have secured Tiller with TLS and have installed it with permissions to only one or a subset of namespaces, some charts may fail to install – but in these environments, that is exactly what you want. If you need to use the chart, you may have to work with the creator or modify it yourself in order to use it securely in a multitenant cluster with proper RBAC rules applied. The <code>helm template</code> command renders the chart locally and displays the output.</p>
+<p>Once vetted, you can use Helm’s provenance tools to <a href="provenance.html">ensure the provenance and integrity of charts</a> that you use.</p>
+<h3 id="grpc-tools-and-secured-tiller-configurations">gRPC Tools and Secured Tiller Configurations</h3>
+<p>Many very useful tools use the gRPC interface directly, and having been built against the default installation – which provides cluster-wide access – may fail once security configurations have been applied. RBAC policies are controlled by you or by the cluster operator, and either can be adjusted for the tool, or the tool can be configured to work properly within the constraints of specific RBAC policies applied to Tiller. The same may need to be done if the gRPC endpoint is secured: the tools need their own secure TLS configuration in order to use a specific Tiller instance. The combination of RBAC policies and a secured gRPC endpoint configured in conjunction with gRPC tools enables you to control your cluster environment as you should.</p>
+<h2 id="best-practices-for-securing-helm-and-tiller">Best Practices for Securing Helm and Tiller</h2>
+<p>The following guidelines reiterate the Best Practices for securing Helm and Tiller and using them correctly.</p>
+<ol type="1">
+<li>Create a cluster with RBAC enabled</li>
+<li>Configure each Tiller gRPC endpoint to use a separate TLS certificate</li>
+<li>Release information should be a Kubernetes Secret</li>
+<li>Install one Tiller per user, team, or other organizational entity with the <code>--service-account</code> flag, Roles, and RoleBindings</li>
+<li>Use the <code>--tiller-tls-verify</code> option with <code>helm init</code> and the <code>--tls</code> flag with other Helm commands to enforce verification</li>
+</ol>
+<p>If these steps are followed, an example <code>helm init</code> command might look something like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" data-line-number="1">$ <span class="ex">helm</span> init \</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">--override <span class="st">&#39;spec.template.spec.containers[0].command&#39;</span>=<span class="st">&#39;{/tiller,--storage=secret}&#39;</span> \</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">--tiller-tls \</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">--tiller-tls-verify \</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">--tiller-tls-cert=cert.pem \</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">--tiller-tls-key=key.pem \</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">--tls-ca-cert=ca.pem \</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">--service-account=accountname</a></code></pre></div>
+<p>This command will start Tiller with strong authentication over gRPC, release information stored in a Kubernetes Secret, and a service account to which RBAC policies have been applied.</p>
+</body>
+</html>
+</div>

@@ -1,0 +1,356 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="using-helm">Using Helm</h1>
+<p>This guide explains the basics of using Helm (and Tiller) to manage packages on your Kubernetes cluster. It assumes that you have already <a href="install.html">installed</a> the Helm client and the Tiller server (typically by <code>helm init</code>).</p>
+<p>If you are simply interested in running a few quick commands, you may wish to begin with the <a href="quickstart.html">Quickstart Guide</a>. This chapter covers the particulars of Helm commands, and explains how to use Helm.</p>
+<h2 id="three-big-concepts">Three Big Concepts</h2>
+<p>A <em>Chart</em> is a Helm package. It contains all of the resource definitions necessary to run an application, tool, or service inside of a Kubernetes cluster. Think of it like the Kubernetes equivalent of a Homebrew formula, an Apt dpkg, or a Yum RPM file.</p>
+<p>A <em>Repository</em> is the place where charts can be collected and shared. It’s like Perl’s <a href="http://www.cpan.org">CPAN archive</a> or the <a href="https://admin.fedoraproject.org/pkgdb/">Fedora Package Database</a>, but for Kubernetes packages.</p>
+<p>A <em>Release</em> is an instance of a chart running in a Kubernetes cluster. One chart can often be installed many times into the same cluster. And each time it is installed, a new <em>release</em> is created. Consider a MySQL chart. If you want two databases running in your cluster, you can install that chart twice. Each one will have its own <em>release</em>, which will in turn have its own <em>release name</em>.</p>
+<p>With these concepts in mind, we can now explain Helm like this:</p>
+<p>Helm installs <em>charts</em> into Kubernetes, creating a new <em>release</em> for each installation. And to find new charts, you can search Helm chart <em>repositories</em>.</p>
+<h2 id="helm-search-finding-charts">‘helm search’: Finding Charts</h2>
+<p>When you first install Helm, it is preconfigured to talk to the official Kubernetes charts repository. This repository contains a number of carefully curated and maintained charts. This chart repository is named <code>stable</code> by default.</p>
+<p>You can see which charts are available by running <code>helm search</code>:</p>
+<pre class="console"><code>$ helm search
+NAME                    VERSION     DESCRIPTION
+stable/drupal       0.3.2       One of the most versatile open source content m...
+stable/jenkins      0.1.0       A Jenkins Helm chart for Kubernetes.
+stable/mariadb      0.5.1       Chart for MariaDB
+stable/mysql        0.1.0       Chart for MySQL
+...</code></pre>
+<p>With no filter, <code>helm search</code> shows you all of the available charts. You can narrow down your results by searching with a filter:</p>
+<pre class="console"><code>$ helm search mysql
+NAME                VERSION DESCRIPTION
+stable/mysql    0.1.0   Chart for MySQL
+stable/mariadb  0.5.1   Chart for MariaDB</code></pre>
+<p>Now you will only see the results that match your filter.</p>
+<p>Why is <code>mariadb</code> in the list? Because its package description relates it to MySQL. We can use <code>helm inspect chart</code> to see this:</p>
+<pre class="console"><code>$ helm inspect stable/mariadb
+Fetched stable/mariadb to mariadb-0.5.1.tgz
+description: Chart for MariaDB
+engine: gotpl
+home: https://mariadb.org
+keywords:
+- mariadb
+- mysql
+- database
+- sql
+...</code></pre>
+<p>Search is a good way to find available packages. Once you have found a package you want to install, you can use <code>helm install</code> to install it.</p>
+<h2 id="helm-install-installing-a-package">‘helm install’: Installing a Package</h2>
+<p>To install a new package, use the <code>helm install</code> command. At its simplest, it takes only one argument: The name of the chart.</p>
+<pre class="console"><code>$ helm install stable/mariadb
+Fetched stable/mariadb-0.3.0 to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+happy-panda
+Last Deployed: Wed Sep 28 12:32:28 2016
+Namespace: default
+Status: DEPLOYED
+
+Resources:
+==&gt; extensions/Deployment
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+happy-panda-mariadb   1         0         0            0           1s
+
+==&gt; v1/Secret
+NAME                     TYPE      DATA      AGE
+happy-panda-mariadb   Opaque    2         1s
+
+==&gt; v1/Service
+NAME                     CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+happy-panda-mariadb   10.0.0.70    &lt;none&gt;        3306/TCP   1s
+
+
+Notes:
+MariaDB can be accessed via port 3306 on the following DNS name from within your cluster:
+happy-panda-mariadb.default.svc.cluster.local
+
+To connect to your database run the following command:
+
+   kubectl run happy-panda-mariadb-client --rm --tty -i --image bitnami/mariadb --command -- mysql -h happy-panda-mariadb</code></pre>
+<p>Now the <code>mariadb</code> chart is installed. Note that installing a chart creates a new <em>release</em> object. The release above is named <code>happy-panda</code>. (If you want to use your own release name, simply use the <code>--name</code> flag on <code>helm install</code>.)</p>
+<p>During installation, the <code>helm</code> client will print useful information about which resources were created, what the state of the release is, and also whether there are additional configuration steps you can or should take.</p>
+<p>Helm does not wait until all of the resources are running before it exits. Many charts require Docker images that are over 600M in size, and may take a long time to install into the cluster.</p>
+<p>To keep track of a release’s state, or to re-read configuration information, you can use <code>helm status</code>:</p>
+<pre class="console"><code>$ helm status happy-panda
+Last Deployed: Wed Sep 28 12:32:28 2016
+Namespace: default
+Status: DEPLOYED
+
+Resources:
+==&gt; v1/Service
+NAME                     CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+happy-panda-mariadb   10.0.0.70    &lt;none&gt;        3306/TCP   4m
+
+==&gt; extensions/Deployment
+NAME                     DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+happy-panda-mariadb   1         1         1            1           4m
+
+==&gt; v1/Secret
+NAME                     TYPE      DATA      AGE
+happy-panda-mariadb   Opaque    2         4m
+
+
+Notes:
+MariaDB can be accessed via port 3306 on the following DNS name from within your cluster:
+happy-panda-mariadb.default.svc.cluster.local
+
+To connect to your database run the following command:
+
+   kubectl run happy-panda-mariadb-client --rm --tty -i --image bitnami/mariadb --command -- mysql -h happy-panda-mariadb</code></pre>
+<p>The above shows the current state of your release.</p>
+<h3 id="customizing-the-chart-before-installing">Customizing the Chart Before Installing</h3>
+<p>Installing the way we have here will only use the default configuration options for this chart. Many times, you will want to customize the chart to use your preferred configuration.</p>
+<p>To see what options are configurable on a chart, use <code>helm inspect values</code>:</p>
+<pre class="console"><code>helm inspect values stable/mariadb
+Fetched stable/mariadb-0.3.0.tgz to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+## Bitnami MariaDB image version
+## ref: https://hub.docker.com/r/bitnami/mariadb/tags/
+##
+## Default: none
+imageTag: 10.1.14-r3
+
+## Specify a imagePullPolicy
+## Default to &#39;Always&#39; if imageTag is &#39;latest&#39;, else set to &#39;IfNotPresent&#39;
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+##
+# imagePullPolicy:
+
+## Specify password for root user
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#setting-the-root-password-on-first-run
+##
+# mariadbRootPassword:
+
+## Create a database user
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-user-on-first-run
+##
+# mariadbUser:
+# mariadbPassword:
+
+## Create a database
+## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
+##
+# mariadbDatabase:</code></pre>
+<p>You can then override any of these settings in a YAML formatted file, and then pass that file during installation.</p>
+<pre class="console"><code>$ echo &#39;{mariadbUser: user0, mariadbDatabase: user0db}&#39; &gt; config.yaml
+$ helm install -f config.yaml stable/mariadb</code></pre>
+<p>The above will create a default MariaDB user with the name <code>user0</code>, and grant this user access to a newly created <code>user0db</code> database, but will accept all the rest of the defaults for that chart.</p>
+<p>There are two ways to pass configuration data during install:</p>
+<ul>
+<li><code>--values</code> (or <code>-f</code>): Specify a YAML file with overrides. This can be specified multiple times and the rightmost file will take precedence</li>
+<li><code>--set</code> (and its variants <code>--set-string</code> and <code>--set-file</code>): Specify overrides on the command line.</li>
+</ul>
+<p>If both are used, <code>--set</code> values are merged into <code>--values</code> with higher precedence. Overrides specified with <code>--set</code> are persisted in a configmap. Values that have been <code>--set</code> can be viewed for a given release with <code>helm get values &lt;release-name&gt;</code>. Values that have been <code>--set</code> can be cleared by running <code>helm upgrade</code> with <code>--reset-values</code> specified.</p>
+<h4 id="the-format-and-limitations-of---set">The Format and Limitations of <code>--set</code></h4>
+<p>The <code>--set</code> option takes zero or more name/value pairs. At its simplest, it is used like this: <code>--set name=value</code>. The YAML equivalent of that is:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">name:</span><span class="at"> value</span></a></code></pre></div>
+<p>Multiple values are separated by <code>,</code> characters. So <code>--set a=b,c=d</code> becomes:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="fu">a:</span><span class="at"> b</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="fu">c:</span><span class="at"> d</span></a></code></pre></div>
+<p>More complex expressions are supported. For example, <code>--set outer.inner=value</code> is translated into this:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="fu">outer:</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">  <span class="fu">inner:</span><span class="at"> value</span></a></code></pre></div>
+<p>Lists can be expressed by enclosing values in <code>{</code> and <code>}</code>. For example, <code>--set name={a, b, c}</code> translates to:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="fu">name:</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  <span class="kw">-</span> a</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">  <span class="kw">-</span> b</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">  <span class="kw">-</span> c</a></code></pre></div>
+<p>As of Helm 2.5.0, it is possible to access list items using an array index syntax. For example, <code>--set servers[0].port=80</code> becomes:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="fu">servers:</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">  <span class="kw">-</span> <span class="fu">port:</span><span class="at"> 80</span></a></code></pre></div>
+<p>Multiple values can be set this way. The line <code>--set servers[0].port=80,servers[0].host=example</code> becomes:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="fu">servers:</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">  <span class="kw">-</span> <span class="fu">port:</span><span class="at"> 80</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">    <span class="fu">host:</span><span class="at"> example</span></a></code></pre></div>
+<p>Sometimes you need to use special characters in your <code>--set</code> lines. You can use a backslash to escape the characters; <code>--set name=&quot;value1\,value2&quot;</code> will become:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="fu">name:</span><span class="at"> </span><span class="st">&quot;value1,value2&quot;</span></a></code></pre></div>
+<p>Similarly, you can escape dot sequences as well, which may come in handy when charts use the <code>toYaml</code> function to parse annotations, labels and node selectors. The syntax for <code>--set nodeSelector.&quot;kubernetes\.io/role&quot;=master</code> becomes:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="fu">nodeSelector:</span></a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">  <span class="fu">kubernetes.io/role:</span><span class="at"> master</span></a></code></pre></div>
+<p>Deeply nested data structures can be difficult to express using <code>--set</code>. Chart designers are encouraged to consider the <code>--set</code> usage when designing the format of a <code>values.yaml</code> file.</p>
+<p>Helm will cast certain values specified with <code>--set</code> to integers. For example, <code>--set foo=true</code> results Helm to cast <code>true</code> into an int64 value. In case you want a string, use a <code>--set</code>’s variant named <code>--set-string</code>. <code>--set-string foo=true</code> results in a string value of <code>&quot;true&quot;</code>.</p>
+<p><code>--set-file key=filepath</code> is another variant of <code>--set</code>. It reads the file and use its content as a value. An example use case of it is to inject a multi-line text into values without dealing with indentation in YAML. Say you want to create a <a href="https://github.com/Azure/brigade">brigade</a> project with certain value containing 5 lines JavaScript code, you might write a <code>values.yaml</code> like:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="fu">defaultScript:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2">  const <span class="kw">{</span> events, Job <span class="kw">}</span> = require(<span class="st">&quot;brigadier&quot;</span>)</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">  function run(e, project) <span class="kw">{</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">    console.log(&quot;hello default script&quot;)</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">  <span class="kw">}</span></a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">  events.on(<span class="st">&quot;run&quot;</span>, run)</a></code></pre></div>
+<p>Being embedded in a YAML, this makes it harder for you to use IDE features and testing framework and so on that supports writing code. Instead, you can use <code>--set-file defaultScript=brigade.js</code> with <code>brigade.js</code> containing:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode javascript"><code class="sourceCode javascript"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">const</span> <span class="op">{</span> events<span class="op">,</span> Job <span class="op">}</span> <span class="op">=</span> <span class="at">require</span>(<span class="st">&quot;brigadier&quot;</span>)</a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">function</span> <span class="at">run</span>(e<span class="op">,</span> project) <span class="op">{</span></a>
+<a class="sourceLine" id="cb17-3" data-line-number="3">  <span class="va">console</span>.<span class="at">log</span>(<span class="st">&quot;hello default script&quot;</span>)</a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="op">}</span></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5"><span class="va">events</span>.<span class="at">on</span>(<span class="st">&quot;run&quot;</span><span class="op">,</span> run)</a></code></pre></div>
+<h3 id="more-installation-methods">More Installation Methods</h3>
+<p>The <code>helm install</code> command can install from several sources:</p>
+<ul>
+<li>A chart repository (as we’ve seen above)</li>
+<li>A local chart archive (<code>helm install foo-0.1.1.tgz</code>)</li>
+<li>An unpacked chart directory (<code>helm install path/to/foo</code>)</li>
+<li>A full URL (<code>helm install https://example.com/charts/foo-1.2.3.tgz</code>)</li>
+</ul>
+<h2 id="helm-upgrade-and-helm-rollback-upgrading-a-release-and-recovering-on-failure">‘helm upgrade’ and ‘helm rollback’: Upgrading a Release, and Recovering on Failure</h2>
+<p>When a new version of a chart is released, or when you want to change the configuration of your release, you can use the <code>helm upgrade</code> command.</p>
+<p>An upgrade takes an existing release and upgrades it according to the information you provide. Because Kubernetes charts can be large and complex, Helm tries to perform the least invasive upgrade. It will only update things that have changed since the last release.</p>
+<pre class="console"><code>$ helm upgrade -f panda.yaml happy-panda stable/mariadb
+Fetched stable/mariadb-0.3.0.tgz to /Users/mattbutcher/Code/Go/src/k8s.io/helm/mariadb-0.3.0.tgz
+happy-panda has been upgraded. Happy Helming!
+Last Deployed: Wed Sep 28 12:47:54 2016
+Namespace: default
+Status: DEPLOYED
+...</code></pre>
+<p>In the above case, the <code>happy-panda</code> release is upgraded with the same chart, but with a new YAML file:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="fu">mariadbUser:</span><span class="at"> user1</span></a></code></pre></div>
+<p>We can use <code>helm get values</code> to see whether that new setting took effect.</p>
+<pre class="console"><code>$ helm get values happy-panda
+mariadbUser: user1</code></pre>
+<p>The <code>helm get</code> command is a useful tool for looking at a release in the cluster. And as we can see above, it shows that our new values from <code>panda.yaml</code> were deployed to the cluster.</p>
+<p>Now, if something does not go as planned during a release, it is easy to roll back to a previous release using <code>helm rollback [RELEASE] [REVISION]</code>.</p>
+<pre class="console"><code>$ helm rollback happy-panda 1</code></pre>
+<p>The above rolls back our happy-panda to its very first release version. A release version is an incremental revision. Every time an install, upgrade, or rollback happens, the revision number is incremented by 1. The first revision number is always 1. And we can use <code>helm history [RELEASE]</code> to see revision numbers for a certain release.</p>
+<h2 id="helpful-options-for-installupgraderollback">Helpful Options for Install/Upgrade/Rollback</h2>
+<p>There are several other helpful options you can specify for customizing the behavior of Helm during an install/upgrade/rollback. Please note that this is not a full list of cli flags. To see a description of all flags, just run <code>helm &lt;command&gt; --help</code>.</p>
+<ul>
+<li><code>--timeout</code>: A value in seconds to wait for Kubernetes commands to complete This defaults to 300 (5 minutes)</li>
+<li><code>--wait</code>: Waits until all Pods are in a ready state, PVCs are bound, Deployments have minimum (<code>Desired</code> minus <code>maxUnavailable</code>) Pods in ready state and Services have an IP address (and Ingress if a <code>LoadBalancer</code>) before marking the release as successful. It will wait for as long as the <code>--timeout</code> value. If timeout is reached, the release will be marked as <code>FAILED</code>. Note: In scenario where Deployment has <code>replicas</code> set to 1 and <code>maxUnavailable</code> is not set to 0 as part of rolling update strategy, <code>--wait</code> will return as ready as it has satisfied the minimum Pod in ready condition.</li>
+<li><code>--no-hooks</code>: This skips running hooks for the command</li>
+<li><code>--recreate-pods</code> (only available for <code>upgrade</code> and <code>rollback</code>): This flag will cause all pods to be recreated (with the exception of pods belonging to deployments)</li>
+</ul>
+<h2 id="helm-delete-deleting-a-release">‘helm delete’: Deleting a Release</h2>
+<p>When it is time to uninstall or delete a release from the cluster, use the <code>helm delete</code> command:</p>
+<pre class="console"><code>$ helm delete happy-panda</code></pre>
+<p>This will remove the release from the cluster. You can see all of your currently deployed releases with the <code>helm list</code> command:</p>
+<pre class="console"><code>$ helm list
+NAME            VERSION UPDATED                         STATUS          CHART
+inky-cat        1       Wed Sep 28 12:59:46 2016        DEPLOYED        alpine-0.1.0</code></pre>
+<p>From the output above, we can see that the <code>happy-panda</code> release was deleted.</p>
+<p>However, Helm always keeps records of what releases happened. Need to see the deleted releases? <code>helm list --deleted</code> shows those, and <code>helm list --all</code> shows all of the releases (deleted and currently deployed, as well as releases that failed):</p>
+<pre class="console"><code>⇒  helm list --all
+NAME            VERSION UPDATED                         STATUS          CHART
+happy-panda     2       Wed Sep 28 12:47:54 2016        DELETED         mariadb-0.3.0
+inky-cat        1       Wed Sep 28 12:59:46 2016        DEPLOYED        alpine-0.1.0
+kindred-angelf  2       Tue Sep 27 16:16:10 2016        DELETED         alpine-0.1.0</code></pre>
+<p>Because Helm keeps records of deleted releases, a release name cannot be re-used. (If you <em>really</em> need to re-use a release name, you can use the <code>--replace</code> flag, but it will simply re-use the existing release and replace its resources.)</p>
+<p>Note that because releases are preserved in this way, you can rollback a deleted resource, and have it re-activate.</p>
+<h2 id="helm-repo-working-with-repositories">‘helm repo’: Working with Repositories</h2>
+<p>So far, we’ve been installing charts only from the <code>stable</code> repository. But you can configure <code>helm</code> to use other repositories. Helm provides several repository tools under the <code>helm repo</code> command.</p>
+<p>You can see which repositories are configured using <code>helm repo list</code>:</p>
+<pre class="console"><code>$ helm repo list
+NAME            URL
+stable          https://kubernetes-charts.storage.googleapis.com
+local           http://localhost:8879/charts
+mumoshu         https://mumoshu.github.io/charts</code></pre>
+<p>And new repositories can be added with <code>helm repo add</code>:</p>
+<pre class="console"><code>$ helm repo add dev https://example.com/dev-charts</code></pre>
+<p>Because chart repositories change frequently, at any point you can make sure your Helm client is up to date by running <code>helm repo update</code>.</p>
+<h2 id="creating-your-own-charts">Creating Your Own Charts</h2>
+<p>The <a href="charts.html">Chart Development Guide</a> explains how to develop your own charts. But you can get started quickly by using the <code>helm create</code> command:</p>
+<pre class="console"><code>$ helm create deis-workflow
+Creating deis-workflow</code></pre>
+<p>Now there is a chart in <code>./deis-workflow</code>. You can edit it and create your own templates.</p>
+<p>As you edit your chart, you can validate that it is well-formatted by running <code>helm lint</code>.</p>
+<p>When it’s time to package the chart up for distribution, you can run the <code>helm package</code> command:</p>
+<pre class="console"><code>$ helm package deis-workflow
+deis-workflow-0.1.0.tgz</code></pre>
+<p>And that chart can now easily be installed by <code>helm install</code>:</p>
+<pre class="console"><code>$ helm install ./deis-workflow-0.1.0.tgz
+...</code></pre>
+<p>Charts that are archived can be loaded into chart repositories. See the documentation for your chart repository server to learn how to upload.</p>
+<p>Note: The <code>stable</code> repository is managed on the <a href="https://github.com/kubernetes/charts">Kubernetes Charts GitHub repository</a>. That project accepts chart source code, and (after audit) packages those for you.</p>
+<h2 id="tiller-namespaces-and-rbac">Tiller, Namespaces and RBAC</h2>
+<p>In some cases you may wish to scope Tiller or deploy multiple Tillers to a single cluster. Here are some best practices when operating in those circumstances.</p>
+<ol type="1">
+<li>Tiller can be <a href="install.html">installed</a> into any namespace. By default, it is installed into kube-system. You can run multiple Tillers provided they each run in their own namespace.</li>
+<li>Limiting Tiller to only be able to install into specific namespaces and/or resource types is controlled by Kubernetes <a href="https://kubernetes.io/docs/admin/authorization/rbac/">RBAC</a> roles and rolebindings. You can add a service account to Tiller when configuring Helm via <code>helm init --service-account &lt;NAME&gt;</code>. You can find more information about that <a href="rbac.html">here</a>.</li>
+<li>Release names are unique PER TILLER INSTANCE.</li>
+<li>Charts should only contain resources that exist in a single namespace.</li>
+<li>It is not recommended to have multiple Tillers configured to manage resources in the same namespace.</li>
+</ol>
+<h2 id="conclusion">Conclusion</h2>
+<p>This chapter has covered the basic usage patterns of the <code>helm</code> client, including searching, installation, upgrading, and deleting. It has also covered useful utility commands like <code>helm status</code>, <code>helm get</code>, and <code>helm repo</code>.</p>
+<p>For more information on these commands, take a look at Helm’s built-in help: <code>helm help</code>.</p>
+<p>In the next chapter, we look at the process of developing charts.</p>
+</body>
+</html>
+</div>

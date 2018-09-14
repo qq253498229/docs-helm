@@ -1,0 +1,20 @@
+= The Chart Best Practices Guide
+
+This guide covers the Helm Team's considered best practices for creating charts.
+It focuses on how charts should be structured.
+
+We focus primarily on best practices for charts that may be publicly deployed.
+We know that many charts are for internal-use only, and authors of such charts
+may find that their internal interests override our suggestions here.
+
+== Table of Contents
+
+* link:conventions.html[General Conventions]: Learn about general chart conventions.
+* link:values.html[Values Files]: See the best practices for structuring `values.yaml`.
+* link:templates.html[Templates]: Learn some of the best techniques for writing templates.
+* link:requirements.html[Requirements]: Follow best practices for `requirements.yaml` files.
+* link:labels.html[Labels and Annotations]: Helm has a _heritage_ of labeling and annotating.
+* Kubernetes Resources:
+** link:pods.html[Pods and Pod Specs]: See the best practices for working with pod specifications.
+** link:rbac.html[Role-Based Access Control]: Guidance on creating and using service accounts, roles, and role bindings.
+** link:custom_resource_definitions.html[Custom Resource Definitions]: Custom Resource Definitions (CRDs) have their own associated best practices.

@@ -1,0 +1,75 @@
+== helm
+
+The Helm package manager for Kubernetes.
+
+=== Synopsis
+
+The Kubernetes package manager
+
+To begin working with Helm, run the 'helm init' command:
+
+[source]
+----
+$ helm init
+----
+
+This will install Tiller to your running Kubernetes cluster.
+It will also set up any necessary local configuration.
+
+Common actions from this point include:
+
+* helm search: search for charts
+* helm fetch: download a chart to your local directory to view
+* helm install: upload the chart to Kubernetes
+* helm list: list releases of charts
+
+Environment:
+ $HELM_HOME set an alternative location for Helm files. By default, these are stored in ~/.helm
+ $HELM_HOST set an alternative Tiller host. The format is host:port
+ $HELM_NO_PLUGINS disable plugins. Set HELM_NO_PLUGINS=1 to disable plugins.
+ $TILLER_NAMESPACE set an alternative Tiller namespace (default "kube-system")
+ $KUBECONFIG set an alternative Kubernetes configuration file (default "~/.kube/config")
+
+=== Options
+
+[source]
+----
+      --debug                           enable verbose output
+  -h, --help                            help for helm
+      --home string                     location of your Helm config. Overrides $HELM_HOME (default "~/.helm")
+      --host string                     address of Tiller. Overrides $HELM_HOST
+      --kube-context string             name of the kubeconfig context to use
+      --kubeconfig string               absolute path to the kubeconfig file to use
+      --tiller-connection-timeout int   the duration (in seconds) Helm will wait to establish a connection to tiller (default 300)
+      --tiller-namespace string         namespace of Tiller (default "kube-system")
+----
+
+=== SEE ALSO
+
+* link:helm_completion.html[helm completion] - Generate autocompletions script for the specified shell (bash or zsh)
+* link:helm_create.html[helm create] - create a new chart with the given name
+* link:helm_delete.html[helm delete] - given a release name, delete the release from Kubernetes
+* link:helm_dependency.html[helm dependency] - manage a chart's dependencies
+* link:helm_fetch.html[helm fetch] - download a chart from a repository and (optionally) unpack it in local directory
+* link:helm_get.html[helm get] - download a named release
+* link:helm_history.html[helm history] - fetch release history
+* link:helm_home.html[helm home] - displays the location of HELM_HOME
+* link:helm_init.html[helm init] - initialize Helm on both client and server
+* link:helm_inspect.html[helm inspect] - inspect a chart
+* link:helm_install.html[helm install] - install a chart archive
+* link:helm_lint.html[helm lint] - examines a chart for possible issues
+* link:helm_list.html[helm list] - list releases
+* link:helm_package.html[helm package] - package a chart directory into a chart archive
+* link:helm_plugin.html[helm plugin] - add, list, or remove Helm plugins
+* link:helm_repo.html[helm repo] - add, list, remove, update, and index chart repositories
+* link:helm_reset.html[helm reset] - uninstalls Tiller from a cluster
+* link:helm_rollback.html[helm rollback] - roll back a release to a previous revision
+* link:helm_search.html[helm search] - search for a keyword in charts
+* link:helm_serve.html[helm serve] - start a local http web server
+* link:helm_status.html[helm status] - displays the status of the named release
+* link:helm_template.html[helm template] - locally render templates
+* link:helm_test.html[helm test] - test a release
+* link:helm_upgrade.html[helm upgrade] - upgrade a release
+* link:helm_verify.html[helm verify] - verify that a chart at the given path has been signed and is valid
+* link:helm_version.html[helm version] - print the client/server version information
+
