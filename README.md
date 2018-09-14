@@ -1,7 +1,14 @@
 # docs-helm
 
-[English](src/docs/en/README.md)
+## 在线文档
 
-[中文](https://docs-helm.codeforfun.cn)
+[英文](https://docs-helm.codeforfun.cn/en/README.html)
 
-感谢reddit网友的回复中提供的技术，点击查看[原文](https://www.reddit.com/r/vuejs/comments/8msur1/serve_static_html_files_with_vue_and_router/)
+[英文markdown版](docs/en/README.md)
+
+[中文](https://docs-helm.codeforfun.cn/cn/README.html)
+
+## 贡献指南
+
+- 提交issue
+- 提交pull request
