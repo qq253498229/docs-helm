@@ -2,11 +2,11 @@
 
 This guide explains the basics of using Helm (and Tiller) to manage
 packages on your Kubernetes cluster. It assumes that you have already
-[installed](install.md) the Helm client and the Tiller server (typically by `helm
+[installed](install.html) the Helm client and the Tiller server (typically by `helm
 init`).
 
 If you are simply interested in running a few quick commands, you may
-wish to begin with the [Quickstart Guide](quickstart.md). This chapter
+wish to begin with the [Quickstart Guide](quickstart.html). This chapter
 covers the particulars of Helm commands, and explains how to use Helm.
 
 ## Three Big Concepts
@@ -485,7 +485,7 @@ sure your Helm client is up to date by running `helm repo update`.
 
 ## Creating Your Own Charts
 
-The [Chart Development Guide](charts.md) explains how to develop your own
+The [Chart Development Guide](charts.html) explains how to develop your own
 charts. But you can get started quickly by using the `helm create`
 command:
 
@@ -525,8 +525,8 @@ accepts chart source code, and (after audit) packages those for you.
 ## Tiller, Namespaces and RBAC
 In some cases you may wish to scope Tiller or deploy multiple Tillers to a single cluster. Here are some best practices when operating in those circumstances.
 
-1. Tiller can be [installed](install.md) into any namespace. By default, it is installed into kube-system. You can run multiple Tillers provided they each run in their own namespace.
-2. Limiting Tiller to only be able to install into specific namespaces and/or resource types is controlled by Kubernetes [RBAC](https://kubernetes.io/docs/admin/authorization/rbac/) roles and rolebindings. You can add a service account to Tiller when configuring Helm via `helm init --service-account <NAME>`. You can find more information about that [here](rbac.md).
+1. Tiller can be [installed](install.html) into any namespace. By default, it is installed into kube-system. You can run multiple Tillers provided they each run in their own namespace.
+2. Limiting Tiller to only be able to install into specific namespaces and/or resource types is controlled by Kubernetes [RBAC](https://kubernetes.io/docs/admin/authorization/rbac/) roles and rolebindings. You can add a service account to Tiller when configuring Helm via `helm init --service-account <NAME>`. You can find more information about that [here](rbac.html).
 3. Release names are unique PER TILLER INSTANCE.
 4. Charts should only contain resources that exist in a single namespace.
 5. It is not recommended to have multiple Tillers configured to manage resources in the same namespace.

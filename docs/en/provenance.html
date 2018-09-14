@@ -1,0 +1,159 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="helm-provenance-and-integrity">Helm Provenance and Integrity</h1>
+<p>Helm has provenance tools which help chart users verify the integrity and origin of a package. Using industry-standard tools based on PKI, GnuPG, and well-respected package managers, Helm can generate and verify signature files.</p>
+<h2 id="overview">Overview</h2>
+<p>Integrity is established by comparing a chart to a provenance record. Provenance records are stored in <em>provenance files</em>, which are stored alongside a packaged chart. For example, if a chart is named <code>myapp-1.2.3.tgz</code>, its provenance file will be <code>myapp-1.2.3.tgz.prov</code>.</p>
+<p>Provenance files are generated at packaging time (<code>helm package --sign ...</code>), and can be checked by multiple commands, notable <code>helm install --verify</code>.</p>
+<h2 id="the-workflow">The Workflow</h2>
+<p>This section describes a potential workflow for using provenance data effectively.</p>
+<p>Prerequisites:</p>
+<ul>
+<li>A valid PGP keypair in a binary (not ASCII-armored) format</li>
+<li>The <code>helm</code> command line tool</li>
+<li>GnuPG command line tools (optional)</li>
+<li>Keybase command line tools (optional)</li>
+</ul>
+<p><strong>NOTE:</strong> If your PGP private key has a passphrase, you will be prompted to enter that passphrase for any commands that support the <code>--sign</code> option.</p>
+<p>Creating a new chart is the same as before:</p>
+<pre><code>$ helm create mychart
+Creating mychart</code></pre>
+<p>Once ready to package, add the <code>--sign</code> flag to <code>helm package</code>. Also, specify the name under which the signing key is known and the keyring containing the corresponding private key:</p>
+<pre><code>$ helm package --sign --key &#39;helm signing key&#39; --keyring path/to/keyring.secret mychart</code></pre>
+<p><strong>TIP:</strong> for GnuPG users, your secret keyring is in <code>~/.gnupg/secring.gpg</code>. You can use <code>gpg --list-secret-keys</code> to list the keys you have.</p>
+<p><strong>Warning:</strong> the GnuPG v2 store your secret keyring using a new format ‘kbx’ on the default location ‘~/.gnupg/pubring.kbx’. Please use the following command to convert your keyring to the legacy gpg format:</p>
+<pre><code>$ gpg --export-secret-keys &gt;~/.gnupg/secring.gpg</code></pre>
+<p>At this point, you should see both <code>mychart-0.1.0.tgz</code> and <code>mychart-0.1.0.tgz.prov</code>. Both files should eventually be uploaded to your desired chart repository.</p>
+<p>You can verify a chart using <code>helm verify</code>:</p>
+<pre><code>$ helm verify mychart-0.1.0.tgz</code></pre>
+<p>A failed verification looks like this:</p>
+<pre><code>$ helm verify topchart-0.1.0.tgz
+Error: sha256 sum does not match for topchart-0.1.0.tgz: &quot;sha256:1939fbf7c1023d2f6b865d137bbb600e0c42061c3235528b1e8c82f4450c12a7&quot; != &quot;sha256:5a391a90de56778dd3274e47d789a2c84e0e106e1a37ef8cfa51fd60ac9e623a&quot;</code></pre>
+<p>To verify during an install, use the <code>--verify</code> flag.</p>
+<pre><code>$ helm install --verify mychart-0.1.0.tgz</code></pre>
+<p>If the keyring (containing the public key associated with the signed chart) is not in the default location, you may need to point to the keyring with <code>--keyring PATH</code> as in the <code>helm package</code> example.</p>
+<p>If verification fails, the install will be aborted before the chart is even pushed up to Tiller.</p>
+<h3 id="using-keybase.io-credentials">Using Keybase.io credentials</h3>
+<p>The <a href="https://keybase.io">Keybase.io</a> service makes it easy to establish a chain of trust for a cryptographic identity. Keybase credentials can be used to sign charts.</p>
+<p>Prerequisites:</p>
+<ul>
+<li>A configured Keybase.io account</li>
+<li>GnuPG installed locally</li>
+<li>The <code>keybase</code> CLI installed locally</li>
+</ul>
+<h4 id="signing-packages">Signing packages</h4>
+<p>The first step is to import your keybase keys into your local GnuPG keyring:</p>
+<pre><code>$ keybase pgp export -s | gpg --import</code></pre>
+<p>This will convert your Keybase key into the OpenPGP format, and then import it locally into your <code>~/.gnupg/secring.gpg</code> file.</p>
+<p>You can double check by running <code>gpg --list-secret-keys</code>.</p>
+<pre><code>$ gpg --list-secret-keys                                                                                                       1 ↵
+/Users/mattbutcher/.gnupg/secring.gpg
+-------------------------------------
+sec   2048R/1FC18762 2016-07-25
+uid                  technosophos (keybase.io/technosophos) &lt;technosophos@keybase.io&gt;
+ssb   2048R/D125E546 2016-07-25</code></pre>
+<p>Note that your secret key will have an identifier string:</p>
+<pre><code>technosophos (keybase.io/technosophos) &lt;technosophos@keybase.io&gt;</code></pre>
+<p>That is the full name of your key.</p>
+<p>Next, you can package and sign a chart with <code>helm package</code>. Make sure you use at least part of that name string in <code>--key</code>.</p>
+<pre><code>$ helm package --sign --key technosophos --keyring ~/.gnupg/secring.gpg mychart</code></pre>
+<p>As a result, the <code>package</code> command should produce both a <code>.tgz</code> file and a <code>.tgz.prov</code> file.</p>
+<h4 id="verifying-packages">Verifying packages</h4>
+<p>You can also use a similar technique to verify a chart signed by someone else’s Keybase key. Say you want to verify a package signed by <code>keybase.io/technosophos</code>. To do this, use the <code>keybase</code> tool:</p>
+<pre><code>$ keybase follow technosophos
+$ keybase pgp pull</code></pre>
+<p>The first command above tracks the user <code>technosophos</code>. Next <code>keybase pgp pull</code> downloads the OpenPGP keys of all of the accounts you follow, placing them in your GnuPG keyring (<code>~/.gnupg/pubring.gpg</code>).</p>
+<p>At this point, you can now use <code>helm verify</code> or any of the commands with a <code>--verify</code> flag:</p>
+<pre><code>$ helm verify somechart-1.2.3.tgz</code></pre>
+<h3 id="reasons-a-chart-may-not-verify">Reasons a chart may not verify</h3>
+<p>These are common reasons for failure.</p>
+<ul>
+<li>The prov file is missing or corrupt. This indicates that something is misconfigured or that the original maintainer did not create a provenance file.</li>
+<li>The key used to sign the file is not in your keyring. This indicate that the entity who signed the chart is not someone you’ve already signaled that you trust.</li>
+<li>The verification of the prov file failed. This indicates that something is wrong with either the chart or the provenance data.</li>
+<li>The file hashes in the provenance file do not match the hash of the archive file. This indicates that the archive has been tampered with.</li>
+</ul>
+<p>If a verification fails, there is reason to distrust the package.</p>
+<h2 id="the-provenance-file">The Provenance File</h2>
+<p>The provenance file contains a chart’s YAML file plus several pieces of verification information. Provenance files are designed to be automatically generated.</p>
+<p>The following pieces of provenance data are added:</p>
+<ul>
+<li>The chart file (Chart.yaml) is included to give both humans and tools an easy view into the contents of the chart.</li>
+<li>The signature (SHA256, just like Docker) of the chart package (the .tgz file) is included, and may be used to verify the integrity of the chart package.</li>
+<li>The entire body is signed using the algorithm used by PGP (see [http://keybase.io] for an emerging way of making crypto signing and verification easy).</li>
+</ul>
+<p>The combination of this gives users the following assurances:</p>
+<ul>
+<li>The package itself has not been tampered with (checksum package tgz).</li>
+<li>The entity who released this package is known (via the GnuPG/PGP signature).</li>
+</ul>
+<p>The format of the file looks something like this:</p>
+<pre><code>-----BEGIN PGP SIGNED MESSAGE-----
+name: nginx
+description: The nginx web server as a replication controller and service pair.
+version: 0.5.1
+keywords:
+  - https
+  - http
+  - web server
+  - proxy
+source:
+- https://github.com/foo/bar
+home: http://nginx.com
+
+...
+files:
+        nginx-0.5.1.tgz: “sha256:9f5270f50fc842cfcb717f817e95178f”
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkjilUEACgQkB01zfu119ZnHuQCdGCcg2YxF3XFscJLS4lzHlvte
+WkQAmQGHuuoLEJuKhRNo+Wy7mhE7u1YG
+=eifq
+-----END PGP SIGNATURE-----</code></pre>
+<p>Note that the YAML section contains two documents (separated by <code>...\n</code>). The first is the Chart.yaml. The second is the checksums, a map of filenames to SHA-256 digests (value shown is fake/truncated)</p>
+<p>The signature block is a standard PGP signature, which provides <a href="http://www.rossde.com/PGP/pgp_signatures.html">tamper resistance</a>.</p>
+<h2 id="chart-repositories">Chart Repositories</h2>
+<p>Chart repositories serve as a centralized collection of Helm charts.</p>
+<p>Chart repositories must make it possible to serve provenance files over HTTP via a specific request, and must make them available at the same URI path as the chart.</p>
+<p>For example, if the base URL for a package is <code>https://example.com/charts/mychart-1.2.3.tgz</code>, the provenance file, if it exists, MUST be accessible at <code>https://example.com/charts/mychart-1.2.3.tgz.prov</code>.</p>
+<p>From the end user’s perspective, <code>helm install --verify myrepo/mychart-1.2.3</code> should result in the download of both the chart and the provenance file with no additional user configuration or action.</p>
+<h2 id="establishing-authority-and-authenticity">Establishing Authority and Authenticity</h2>
+<p>When dealing with chain-of-trust systems, it is important to be able to establish the authority of a signer. Or, to put this plainly, the system above hinges on the fact that you trust the person who signed the chart. That, in turn, means you need to trust the public key of the signer.</p>
+<p>One of the design decisions with Kubernetes Helm has been that the Helm project would not insert itself into the chain of trust as a necessary party. We don’t want to be “the certificate authority” for all chart signers. Instead, we strongly favor a decentralized model, which is part of the reason we chose OpenPGP as our foundational technology. So when it comes to establishing authority, we have left this step more-or-less undefined in Helm 2.0.0.</p>
+<p>However, we have some pointers and recommendations for those interested in using the provenance system:</p>
+<ul>
+<li>The <a href="https://keybase.io">Keybase</a> platform provides a public centralized repository for trust information.
+<ul>
+<li>You can use Keybase to store your keys or to get the public keys of others.</li>
+<li>Keybase also has fabulous documentation available</li>
+<li>While we haven’t tested it, Keybase’s “secure website” feature could be used to serve Helm charts.</li>
+</ul></li>
+<li>The <a href="https://github.com/kubernetes/charts">official Kubernetes Charts project</a> is trying to solve this problem for the official chart repository.
+<ul>
+<li>There is a long issue there <a href="https://github.com/kubernetes/charts/issues/23">detailing the current thoughts</a>.</li>
+<li>The basic idea is that an official “chart reviewer” signs charts with her or his key, and the resulting provenance file is then uploaded to the chart repository.</li>
+<li>There has been some work on the idea that a list of valid signing keys may be included in the <code>index.yaml</code> file of a repository.</li>
+</ul></li>
+</ul>
+<p>Finally, chain-of-trust is an evolving feature of Helm, and some community members have proposed adapting part of the OSI model for signatures. This is an open line of inquiry in the Helm team. If you’re interested, jump on in.</p>
+</body>
+</html>
+</div>

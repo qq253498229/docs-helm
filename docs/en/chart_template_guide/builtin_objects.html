@@ -1,0 +1,62 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="built-in-objects">Built-in Objects</h1>
+<p>Objects are passed into a template from the template engine. And your code can pass objects around (we’ll see examples when we look at the <code>with</code> and <code>range</code> statements). There are even a few ways to create new objects within your templates, like with the <code>tuple</code> function we’ll see later.</p>
+<p>Objects can be simple, and have just one value. Or they can contain other objects or functions. For example. the <code>Release</code> object contains several objects (like <code>Release.Name</code>) and the <code>Files</code> object has a few functions.</p>
+<p>In the previous section, we use <code>{{.Release.Name}}</code> to insert the name of a release into a template. <code>Release</code> is one of the top-level objects that you can access in your templates.</p>
+<ul>
+<li><code>Release</code>: This object describes the release itself. It has several objects inside of it:
+<ul>
+<li><code>Release.Name</code>: The release name</li>
+<li><code>Release.Time</code>: The time of the release</li>
+<li><code>Release.Namespace</code>: The namespace to be released into (if the manifest doesn’t override)</li>
+<li><code>Release.Service</code>: The name of the releasing service (always <code>Tiller</code>).</li>
+<li><code>Release.Revision</code>: The revision number of this release. It begins at 1 and is incremented for each <code>helm upgrade</code>.</li>
+<li><code>Release.IsUpgrade</code>: This is set to <code>true</code> if the current operation is an upgrade or rollback.</li>
+<li><code>Release.IsInstall</code>: This is set to <code>true</code> if the current operation is an install.</li>
+</ul></li>
+<li><code>Values</code>: Values passed into the template from the <code>values.yaml</code> file and from user-supplied files. By default, <code>Values</code> is empty.</li>
+<li><code>Chart</code>: The contents of the <code>Chart.yaml</code> file. Any data in <code>Chart.yaml</code> will be accessible here. For example <code>{{.Chart.Name}}-{{.Chart.Version}}</code> will print out the <code>mychart-0.1.0</code>.
+<ul>
+<li>The available fields are listed in the <a href="https://github.com/kubernetes/helm/blob/master/docs/charts.md#the-chartyaml-file">Charts Guide</a></li>
+</ul></li>
+<li><code>Files</code>: This provides access to all non-special files in a chart. While you cannot use it to access templates, you can use it to access other files in the chart. See the section <em>Accessing Files</em> for more.
+<ul>
+<li><code>Files.Get</code> is a function for getting a file by name (<code>.Files.Get config.ini</code>)</li>
+<li><code>Files.GetBytes</code> is a function for getting the contents of a file as an array of bytes instead of as a string. This is useful for things like images.</li>
+</ul></li>
+<li><code>Capabilities</code>: This provides information about what capabilities the Kubernetes cluster supports.
+<ul>
+<li><code>Capabilities.APIVersions</code> is a set of versions.</li>
+<li><code>Capabilities.APIVersions.Has $version</code> indicates whether a version (<code>batch/v1</code>) is enabled on the cluster.</li>
+<li><code>Capabilities.KubeVersion</code> provides a way to look up the Kubernetes version. It has the following values: <code>Major</code>, <code>Minor</code>, <code>GitVersion</code>, <code>GitCommit</code>, <code>GitTreeState</code>, <code>BuildDate</code>, <code>GoVersion</code>, <code>Compiler</code>, and <code>Platform</code>.</li>
+<li><code>Capabilities.TillerVersion</code> provides a way to look up the Tiller version. It has the following values: <code>SemVer</code>, <code>GitCommit</code>, and <code>GitTreeState</code>.</li>
+</ul></li>
+<li><code>Template</code>: Contains information about the current template that is being executed
+<ul>
+<li><code>Name</code>: A namespaced filepath to the current template (e.g. <code>mychart/templates/mytemplate.yaml</code>)</li>
+<li><code>BasePath</code>: The namespaced path to the templates directory of the current chart (e.g. <code>mychart/templates</code>).</li>
+</ul></li>
+</ul>
+<p>The values are available to any top-level template. As we will see later, this does not necessarily mean that they will be available <em>everywhere</em>.</p>
+<p>The built-in values always begin with a capital letter. This is in keeping with Go’s naming convention. When you create your own names, you are free to use a convention that suits your team. Some teams, like the <a href="https://github.com/kubernetes/charts">Kubernetes Charts</a> team, choose to use only initial lower case letters in order to distinguish local names from those built-in. In this guide, we follow that convention.</p>
+</body>
+</html>
+</div>

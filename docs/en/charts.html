@@ -1,0 +1,534 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="charts">Charts</h1>
+<p>Helm uses a packaging format called <em>charts</em>. A chart is a collection of files that describe a related set of Kubernetes resources. A single chart might be used to deploy something simple, like a memcached pod, or something complex, like a full web app stack with HTTP servers, databases, caches, and so on.</p>
+<p>Charts are created as files laid out in a particular directory tree, then they can be packaged into versioned archives to be deployed.</p>
+<p>This document explains the chart format, and provides basic guidance for building charts with Helm.</p>
+<h2 id="the-chart-file-structure">The Chart File Structure</h2>
+<p>A chart is organized as a collection of files inside of a directory. The directory name is the name of the chart (without versioning information). Thus, a chart describing WordPress would be stored in the <code>wordpress/</code> directory.</p>
+<p>Inside of this directory, Helm will expect a structure that matches this:</p>
+<pre><code>wordpress/
+  Chart.yaml          # A YAML file containing information about the chart
+  LICENSE             # OPTIONAL: A plain text file containing the license for the chart
+  README.md           # OPTIONAL: A human-readable README file
+  requirements.yaml   # OPTIONAL: A YAML file listing dependencies for the chart
+  values.yaml         # The default configuration values for this chart
+  charts/             # A directory containing any charts upon which this chart depends.
+  templates/          # A directory of templates that, when combined with values,
+                      # will generate valid Kubernetes manifest files.
+  templates/NOTES.txt # OPTIONAL: A plain text file containing short usage notes</code></pre>
+<p>Helm reserves use of the <code>charts/</code> and <code>templates/</code> directories, and of the listed file names. Other files will be left as they are.</p>
+<h2 id="the-chart.yaml-file">The Chart.yaml File</h2>
+<p>The <code>Chart.yaml</code> file is required for a chart. It contains the following fields:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> The chart API version, always &quot;v1&quot; (required)</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">name:</span><span class="at"> The name of the chart (required)</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="fu">version:</span><span class="at"> A SemVer 2 version (required)</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="fu">kubeVersion:</span><span class="at"> A SemVer range of compatible Kubernetes versions (optional)</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="fu">description:</span><span class="at"> A single-sentence description of this project (optional)</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="fu">keywords:</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">  <span class="kw">-</span> A list of keywords about this project (optional)</a>
+<a class="sourceLine" id="cb2-8" data-line-number="8"><span class="fu">home:</span><span class="at"> The URL of this project&#39;s home page (optional)</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9"><span class="fu">sources:</span></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">  <span class="kw">-</span> A list of URLs to source code for this project (optional)</a>
+<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="fu">maintainers:</span><span class="at"> </span><span class="co"># (optional)</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> The maintainer&#39;s name (required for each maintainer)</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">    <span class="fu">email:</span><span class="at"> The maintainer&#39;s email (optional for each maintainer)</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">    <span class="fu">url:</span><span class="at"> A URL for the maintainer (optional for each maintainer)</span></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="fu">engine:</span><span class="at"> gotpl </span><span class="co"># The name of the template engine (optional, defaults to gotpl)</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="fu">icon:</span><span class="at"> A URL to an SVG or PNG image to be used as an icon (optional).</span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="fu">appVersion:</span><span class="at"> The version of the app that this contains (optional). This needn&#39;t be SemVer.</span></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18"><span class="fu">deprecated:</span><span class="at"> Whether this chart is deprecated (optional, boolean)</span></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="fu">tillerVersion:</span><span class="at"> The version of Tiller that this chart requires. This should be expressed as a SemVer range: &quot;&gt;2.0.0&quot; (optional)</span></a></code></pre></div>
+<p>If you are familiar with the <code>Chart.yaml</code> file format for Helm Classic, you will notice that fields specifying dependencies have been removed. That is because the new Chart format expresses dependencies using the <code>charts/</code> directory.</p>
+<p>Other fields will be silently ignored.</p>
+<h3 id="charts-and-versioning">Charts and Versioning</h3>
+<p>Every chart must have a version number. A version must follow the <a href="http://semver.org/">SemVer 2</a> standard. Unlike Helm Classic, Kubernetes Helm uses version numbers as release markers. Packages in repositories are identified by name plus version.</p>
+<p>For example, an <code>nginx</code> chart whose version field is set to <code>version: 1.2.3</code> will be named:</p>
+<pre><code>nginx-1.2.3.tgz</code></pre>
+<p>More complex SemVer 2 names are also supported, such as <code>version: 1.2.3-alpha.1+ef365</code>. But non-SemVer names are explicitly disallowed by the system.</p>
+<p><strong>NOTE:</strong> Whereas Helm Classic and Deployment Manager were both very GitHub oriented when it came to charts, Kubernetes Helm does not rely upon or require GitHub or even Git. Consequently, it does not use Git SHAs for versioning at all.</p>
+<p>The <code>version</code> field inside of the <code>Chart.yaml</code> is used by many of the Helm tools, including the CLI and the Tiller server. When generating a package, the <code>helm package</code> command will use the version that it finds in the <code>Chart.yaml</code> as a token in the package name. The system assumes that the version number in the chart package name matches the version number in the <code>Chart.yaml</code>. Failure to meet this assumption will cause an error.</p>
+<h3 id="the-appversion-field">The appVersion field</h3>
+<p>Note that the <code>appVersion</code> field is not related to the <code>version</code> field. It is a way of specifying the version of the application. For example, the <code>drupal</code> chart may have an <code>appVersion: 8.2.1</code>, indicating that the version of Drupal included in the chart (by default) is <code>8.2.1</code>. This field is informational, and has no impact on chart version calculations.</p>
+<h3 id="deprecating-charts">Deprecating Charts</h3>
+<p>When managing charts in a Chart Repository, it is sometimes necessary to deprecate a chart. The optional <code>deprecated</code> field in <code>Chart.yaml</code> can be used to mark a chart as deprecated. If the <strong>latest</strong> version of a chart in the repository is marked as deprecated, then the chart as a whole is considered to be deprecated. The chart name can later be reused by publishing a newer version that is not marked as deprecated. The workflow for deprecating charts, as followed by the <a href="https://github.com/kubernetes/charts">kubernetes/charts</a> project is: - Update chart’s <code>Chart.yaml</code> to mark the chart as deprecated, bumping the version - Release the new chart version in the Chart Repository - Remove the chart from the source repository (e.g. git)</p>
+<h2 id="chart-license-readme-and-notes">Chart LICENSE, README and NOTES</h2>
+<p>Charts can also contain files that describe the installation, configuration, usage and license of a chart. A README for a chart should be formatted in Markdown (README.html), and should generally contain:</p>
+<ul>
+<li>A description of the application or service the chart provides</li>
+<li>Any prerequisites or requirements to run the chart</li>
+<li>Descriptions of options in <code>values.yaml</code> and default values</li>
+<li>Any other information that may be relevant to the installation or configuration of the chart</li>
+</ul>
+<p>The chart can also contain a short plain text <code>templates/NOTES.txt</code> file that will be printed out after installation, and when viewing the status of a release. This file is evaluated as a <a href="#templates-and-values">template</a>, and can be used to display usage notes, next steps, or any other information relevant to a release of the chart. For example, instructions could be provided for connecting to a database, or accessing a web UI. Since this file is printed to STDOUT when running <code>helm install</code> or <code>helm status</code>, it is recommended to keep the content brief and point to the README for greater detail.</p>
+<h2 id="chart-dependencies">Chart Dependencies</h2>
+<p>In Helm, one chart may depend on any number of other charts. These dependencies can be dynamically linked through the <code>requirements.yaml</code> file or brought in to the <code>charts/</code> directory and managed manually.</p>
+<p>Although manually managing your dependencies has a few advantages some teams need, the preferred method of declaring dependencies is by using a <code>requirements.yaml</code> file inside of your chart.</p>
+<p><strong>Note:</strong> The <code>dependencies:</code> section of the <code>Chart.yaml</code> from Helm Classic has been completely removed.</p>
+<h3 id="managing-dependencies-with-requirements.yaml">Managing Dependencies with <code>requirements.yaml</code></h3>
+<p>A <code>requirements.yaml</code> file is a simple file for listing your dependencies.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">dependencies:</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> apache</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">    <span class="fu">version:</span><span class="at"> 1.2.3</span></a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">    <span class="fu">repository:</span><span class="at"> http://example.com/charts</span></a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> mysql</span></a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">    <span class="fu">version:</span><span class="at"> 3.2.1</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">    <span class="fu">repository:</span><span class="at"> http://another.example.com/charts</span></a></code></pre></div>
+<ul>
+<li>The <code>name</code> field is the name of the chart you want.</li>
+<li>The <code>version</code> field is the version of the chart you want.</li>
+<li>The <code>repository</code> field is the full URL to the chart repository. Note that you must also use <code>helm repo add</code> to add that repo locally.</li>
+</ul>
+<p>Once you have a dependencies file, you can run <code>helm dependency update</code> and it will use your dependency file to download all the specified charts into your <code>charts/</code> directory for you.</p>
+<pre class="console"><code>$ helm dep up foochart
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the &quot;local&quot; chart repository
+...Successfully got an update from the &quot;stable&quot; chart repository
+...Successfully got an update from the &quot;example&quot; chart repository
+...Successfully got an update from the &quot;another&quot; chart repository
+Update Complete. Happy Helming!
+Saving 2 charts
+Downloading apache from repo http://example.com/charts
+Downloading mysql from repo http://another.example.com/charts</code></pre>
+<p>When <code>helm dependency update</code> retrieves charts, it will store them as chart archives in the <code>charts/</code> directory. So for the example above, one would expect to see the following files in the charts directory:</p>
+<pre><code>charts/
+  apache-1.2.3.tgz
+  mysql-3.2.1.tgz</code></pre>
+<p>Managing charts with <code>requirements.yaml</code> is a good way to easily keep charts updated, and also share requirements information throughout a team.</p>
+<h4 id="alias-field-in-requirements.yaml">Alias field in requirements.yaml</h4>
+<p>In addition to the other fields above, each requirements entry may contain the optional field <code>alias</code>.</p>
+<p>Adding an alias for a dependency chart would put a chart in dependencies using alias as name of new dependency.</p>
+<p>One can use <code>alias</code> in cases where they need to access a chart with other name(s).</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="co"># parentchart/requirements.yaml</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="fu">dependencies:</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> subchart</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">    <span class="fu">repository:</span><span class="at"> http://localhost:10191</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">    <span class="fu">version:</span><span class="at"> 0.1.0</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">    <span class="fu">alias:</span><span class="at"> new-subchart-1</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> subchart</span></a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">    <span class="fu">repository:</span><span class="at"> http://localhost:10191</span></a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">    <span class="fu">version:</span><span class="at"> 0.1.0</span></a>
+<a class="sourceLine" id="cb7-10" data-line-number="10">    <span class="fu">alias:</span><span class="at"> new-subchart-2</span></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> subchart</span></a>
+<a class="sourceLine" id="cb7-12" data-line-number="12">    <span class="fu">repository:</span><span class="at"> http://localhost:10191</span></a>
+<a class="sourceLine" id="cb7-13" data-line-number="13">    <span class="fu">version:</span><span class="at"> 0.1.0</span></a></code></pre></div>
+<p>In the above example we will get 3 dependencies in all for <code>parentchart</code></p>
+<pre><code>subchart
+new-subchart-1
+new-subchart-2</code></pre>
+<p>The manual way of achieving this is by copy/pasting the same chart in the <code>charts/</code> directory multiple times with different names.</p>
+<h4 id="tags-and-condition-fields-in-requirements.yaml">Tags and Condition fields in requirements.yaml</h4>
+<p>In addition to the other fields above, each requirements entry may contain the optional fields <code>tags</code> and <code>condition</code>.</p>
+<p>All charts are loaded by default. If <code>tags</code> or <code>condition</code> fields are present, they will be evaluated and used to control loading for the chart(s) they are applied to.</p>
+<p>Condition - The condition field holds one or more YAML paths (delimited by commas). If this path exists in the top parent’s values and resolves to a boolean value, the chart will be enabled or disabled based on that boolean value. Only the first valid path found in the list is evaluated and if no paths exist then the condition has no effect.</p>
+<p>Tags - The tags field is a YAML list of labels to associate with this chart. In the top parent’s values, all charts with tags can be enabled or disabled by specifying the tag and a boolean value.</p>
+<pre><code># parentchart/requirements.yaml
+dependencies:
+      - name: subchart1
+        repository: http://localhost:10191
+        version: 0.1.0
+        condition: subchart1.enabled,global.subchart1.enabled
+        tags:
+          - front-end
+          - subchart1
+
+      - name: subchart2
+        repository: http://localhost:10191
+        version: 0.1.0
+        condition: subchart2.enabled,global.subchart2.enabled
+        tags:
+          - back-end
+          - subchart2
+</code></pre>
+<pre><code># parentchart/values.yaml
+
+subchart1:
+  enabled: true
+tags:
+  front-end: false
+  back-end: true</code></pre>
+<p>In the above example all charts with the tag <code>front-end</code> would be disabled but since the <code>subchart1.enabled</code> path evaluates to ‘true’ in the parent’s values, the condition will override the <code>front-end</code> tag and <code>subchart1</code> will be enabled.</p>
+<p>Since <code>subchart2</code> is tagged with <code>back-end</code> and that tag evaluates to <code>true</code>, <code>subchart2</code> will be enabled. Also notes that although <code>subchart2</code> has a condition specified in <code>requirements.yaml</code>, there is no corresponding path and value in the parent’s values so that condition has no effect.</p>
+<h5 id="using-the-cli-with-tags-and-conditions">Using the CLI with Tags and Conditions</h5>
+<p>The <code>--set</code> parameter can be used as usual to alter tag and condition values.</p>
+<pre><code>helm install --set tags.front-end=true --set subchart2.enabled=false</code></pre>
+<h5 id="tags-and-condition-resolution">Tags and Condition Resolution</h5>
+<ul>
+<li><strong>Conditions (when set in values) always override tags.</strong> The first condition path that exists wins and subsequent ones for that chart are ignored.</li>
+<li>Tags are evaluated as ‘if any of the chart’s tags are true then enable the chart’.</li>
+<li>Tags and conditions values must be set in the top parent’s values.</li>
+<li>The <code>tags:</code> key in values must be a top level key. Globals and nested <code>tags:</code> tables are not currently supported.</li>
+</ul>
+<h4 id="importing-child-values-via-requirements.yaml">Importing Child Values via requirements.yaml</h4>
+<p>In some cases it is desirable to allow a child chart’s values to propagate to the parent chart and be shared as common defaults. An additional benefit of using the <code>exports</code> format is that it will enable future tooling to introspect user-settable values.</p>
+<p>The keys containing the values to be imported can be specified in the parent chart’s <code>requirements.yaml</code> file using a YAML list. Each item in the list is a key which is imported from the child chart’s <code>exports</code> field.</p>
+<p>To import values not contained in the <code>exports</code> key, use the <a href="#using-the-child-parent-format">child-parent</a> format. Examples of both formats are described below.</p>
+<h5 id="using-the-exports-format">Using the exports format</h5>
+<p>If a child chart’s <code>values.yaml</code> file contains an <code>exports</code> field at the root, its contents may be imported directly into the parent’s values by specifying the keys to import as in the example below:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="co"># parent&#39;s requirements.yaml file</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">    ...</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">    <span class="fu">import-values:</span></a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">      <span class="kw">-</span> data</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co"># child&#39;s values.yaml file</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="co">...</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="co">exports:</span></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="co">  data:</span></a>
+<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="co">    myint: 99</span></a></code></pre></div>
+<p>Since we are specifying the key <code>data</code> in our import list, Helm looks in the <code>exports</code> field of the child chart for <code>data</code> key and imports its contents.</p>
+<p>The final parent values would contain our exported field:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="co"># parent&#39;s values file</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="co">...</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="co">myint: 99</span></a></code></pre></div>
+<p>Please note the parent key <code>data</code> is not contained in the parent’s final values. If you need to specify the parent key, use the ‘child-parent’ format.</p>
+<h5 id="using-the-child-parent-format">Using the child-parent format</h5>
+<p>To access values that are not contained in the <code>exports</code> key of the child chart’s values, you will need to specify the source key of the values to be imported (<code>child</code>) and the destination path in the parent chart’s values (<code>parent</code>).</p>
+<p>The <code>import-values</code> in the example below instructs Helm to take any values found at <code>child:</code> path and copy them to the parent’s values at the path specified in <code>parent:</code></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="co"># parent&#39;s requirements.yaml file</span></a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="fu">dependencies:</span></a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">  <span class="kw">-</span> <span class="fu">name:</span><span class="at"> subchart1</span></a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">    <span class="fu">repository:</span><span class="at"> http://localhost:10191</span></a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">    <span class="fu">version:</span><span class="at"> 0.1.0</span></a>
+<a class="sourceLine" id="cb15-6" data-line-number="6">    ...</a>
+<a class="sourceLine" id="cb15-7" data-line-number="7">    <span class="fu">import-values:</span></a>
+<a class="sourceLine" id="cb15-8" data-line-number="8">      <span class="kw">-</span> <span class="fu">child:</span><span class="at"> default.data</span></a>
+<a class="sourceLine" id="cb15-9" data-line-number="9">        <span class="fu">parent:</span><span class="at"> myimports</span></a></code></pre></div>
+<p>In the above example, values found at <code>default.data</code> in the subchart1’s values will be imported to the <code>myimports</code> key in the parent chart’s values as detailed below:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># parent&#39;s values.yaml file</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="fu">myimports:</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">  <span class="fu">myint:</span><span class="at"> 0</span></a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">  <span class="fu">mybool:</span><span class="at"> false</span></a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">  <span class="fu">mystring:</span><span class="at"> </span><span class="st">&quot;helm rocks!&quot;</span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">  </a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># subchart1&#39;s values.yaml file</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="fu">default:</span></a>
+<a class="sourceLine" id="cb17-4" data-line-number="4">  <span class="fu">data:</span></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">    <span class="fu">myint:</span><span class="at"> 999</span></a>
+<a class="sourceLine" id="cb17-6" data-line-number="6">    <span class="fu">mybool:</span><span class="at"> true</span></a>
+<a class="sourceLine" id="cb17-7" data-line-number="7">    </a></code></pre></div>
+<p>The parent chart’s resulting values would be:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="co"># parent&#39;s final values</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3"><span class="fu">myimports:</span></a>
+<a class="sourceLine" id="cb18-4" data-line-number="4">  <span class="fu">myint:</span><span class="at"> 999</span></a>
+<a class="sourceLine" id="cb18-5" data-line-number="5">  <span class="fu">mybool:</span><span class="at"> true</span></a>
+<a class="sourceLine" id="cb18-6" data-line-number="6">  <span class="fu">mystring:</span><span class="at"> </span><span class="st">&quot;helm rocks!&quot;</span></a></code></pre></div>
+<p>The parent’s final values now contains the <code>myint</code> and <code>mybool</code> fields imported from subchart1.</p>
+<h3 id="managing-dependencies-manually-via-the-charts-directory">Managing Dependencies manually via the <code>charts/</code> directory</h3>
+<p>If more control over dependencies is desired, these dependencies can be expressed explicitly by copying the dependency charts into the <code>charts/</code> directory.</p>
+<p>A dependency can be either a chart archive (<code>foo-1.2.3.tgz</code>) or an unpacked chart directory. But its name cannot start with <code>_</code> or <code>.</code>. Such files are ignored by the chart loader.</p>
+<p>For example, if the WordPress chart depends on the Apache chart, the Apache chart (of the correct version) is supplied in the WordPress chart’s <code>charts/</code> directory:</p>
+<pre><code>wordpress:
+  Chart.yaml
+  requirements.yaml
+  # ...
+  charts/
+    apache/
+      Chart.yaml
+      # ...
+    mysql/
+      Chart.yaml
+      # ...</code></pre>
+<p>The example above shows how the WordPress chart expresses its dependency on Apache and MySQL by including those charts inside of its <code>charts/</code> directory.</p>
+<p><strong>TIP:</strong> <em>To drop a dependency into your <code>charts/</code> directory, use the <code>helm fetch</code> command</em></p>
+<h3 id="operational-aspects-of-using-dependencies">Operational aspects of using dependencies</h3>
+<p>The above sections explain how to specify chart dependencies, but how does this affect chart installation using <code>helm install</code> and <code>helm upgrade</code>?</p>
+<p>Suppose that a chart named “A” creates the following Kubernetes objects</p>
+<ul>
+<li>namespace “A-Namespace”</li>
+<li>statefulset “A-StatefulSet”</li>
+<li>service “A-Service”</li>
+</ul>
+<p>Furthermore, A is dependent on chart B that creates objects</p>
+<ul>
+<li>namespace “B-Namespace”</li>
+<li>replicaset “B-ReplicaSet”</li>
+<li>service “B-Service”</li>
+</ul>
+<p>After installation/upgrade of chart A a single Helm release is created/modified. The release will create/update all of the above Kubernetes objects in the following order:</p>
+<ul>
+<li>A-Namespace</li>
+<li>B-Namespace</li>
+<li>A-StatefulSet</li>
+<li>B-ReplicaSet</li>
+<li>A-Service</li>
+<li>B-Service</li>
+</ul>
+<p>This is because when Helm installs/upgrades charts, the Kubernetes objects from the charts and all its dependencies are</p>
+<ul>
+<li>aggregrated into a single set; then</li>
+<li>sorted by type followed by name; and then</li>
+<li>created/updated in that order.</li>
+</ul>
+<p>Hence a single release is created with all the objects for the chart and its dependencies.</p>
+<p>The install order of Kubernetes types is given by the enumeration InstallOrder in kind_sorter.go (see <a href="https://github.com/kubernetes/helm/blob/master/pkg/tiller/kind_sorter.go#L26">the Helm source file</a>).</p>
+<h2 id="templates-and-values">Templates and Values</h2>
+<p>Helm Chart templates are written in the <a href="https://golang.org/pkg/text/template/">Go template language</a>, with the addition of 50 or so add-on template functions <a href="https://github.com/Masterminds/sprig">from the Sprig library</a> and a few other <a href="charts_tips_and_tricks.html">specialized functions</a>.</p>
+<p>All template files are stored in a chart’s <code>templates/</code> folder. When Helm renders the charts, it will pass every file in that directory through the template engine.</p>
+<p>Values for the templates are supplied two ways:</p>
+<ul>
+<li>Chart developers may supply a file called <code>values.yaml</code> inside of a chart. This file can contain default values.</li>
+<li>Chart users may supply a YAML file that contains values. This can be provided on the command line with <code>helm install</code>.</li>
+</ul>
+<p>When a user supplies custom values, these values will override the values in the chart’s <code>values.yaml</code> file.</p>
+<h3 id="template-files">Template Files</h3>
+<p>Template files follow the standard conventions for writing Go templates (see <a href="https://golang.org/pkg/text/template/">the text/template Go package documentation</a> for details). An example template file might look something like this:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ReplicationController</span></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb20-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb20-5" data-line-number="5">  <span class="fu">namespace:</span><span class="at"> deis</span></a>
+<a class="sourceLine" id="cb20-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb20-7" data-line-number="7">    <span class="fu">app.kubernetes.io/managed-by:</span><span class="at"> deis</span></a>
+<a class="sourceLine" id="cb20-8" data-line-number="8"><span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb20-9" data-line-number="9">  <span class="fu">replicas:</span><span class="at"> 1</span></a>
+<a class="sourceLine" id="cb20-10" data-line-number="10">  <span class="fu">selector:</span></a>
+<a class="sourceLine" id="cb20-11" data-line-number="11">    <span class="fu">app.kubernetes.io/name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb20-12" data-line-number="12">  <span class="fu">template:</span></a>
+<a class="sourceLine" id="cb20-13" data-line-number="13">    <span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb20-14" data-line-number="14">      <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb20-15" data-line-number="15">        <span class="fu">app.kubernetes.io/name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb20-16" data-line-number="16">    <span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb20-17" data-line-number="17">      <span class="fu">serviceAccount:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb20-18" data-line-number="18">      <span class="fu">containers:</span></a>
+<a class="sourceLine" id="cb20-19" data-line-number="19">        <span class="kw">-</span> <span class="fu">name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb20-20" data-line-number="20">          <span class="fu">image:</span><span class="at"> </span><span class="kw">{</span><span class="fu">{.Values.imageRegistry}}/postgres:</span><span class="kw">{</span>{.Values.dockerTag<span class="kw">}}</span></a>
+<a class="sourceLine" id="cb20-21" data-line-number="21">          <span class="fu">imagePullPolicy:</span><span class="at"> </span><span class="kw">{</span>{.Values.pullPolicy<span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb20-22" data-line-number="22">          <span class="fu">ports:</span></a>
+<a class="sourceLine" id="cb20-23" data-line-number="23">            <span class="kw">-</span> <span class="fu">containerPort:</span><span class="at"> 5432</span></a>
+<a class="sourceLine" id="cb20-24" data-line-number="24">          <span class="fu">env:</span></a>
+<a class="sourceLine" id="cb20-25" data-line-number="25">            <span class="kw">-</span> <span class="fu">name:</span><span class="at"> DATABASE_STORAGE</span></a>
+<a class="sourceLine" id="cb20-26" data-line-number="26">              <span class="fu">value:</span><span class="at"> </span><span class="kw">{</span>{default &quot;minio&quot; .Values.storage<span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<p>The above example, based loosely on <a href="https://github.com/deis/charts" class="uri">https://github.com/deis/charts</a>, is a template for a Kubernetes replication controller. It can use the following four template values (usually defined in a <code>values.yaml</code> file):</p>
+<ul>
+<li><code>imageRegistry</code>: The source registry for the Docker image.</li>
+<li><code>dockerTag</code>: The tag for the docker image.</li>
+<li><code>pullPolicy</code>: The Kubernetes pull policy.</li>
+<li><code>storage</code>: The storage backend, whose default is set to <code>&quot;minio&quot;</code></li>
+</ul>
+<p>All of these values are defined by the template author. Helm does not require or dictate parameters.</p>
+<p>To see many working charts, check out the <a href="https://github.com/kubernetes/charts">Kubernetes Charts project</a></p>
+<h3 id="predefined-values">Predefined Values</h3>
+<p>Values that are supplied via a <code>values.yaml</code> file (or via the <code>--set</code> flag) are accessible from the <code>.Values</code> object in a template. But there are other pre-defined pieces of data you can access in your templates.</p>
+<p>The following values are pre-defined, are available to every template, and cannot be overridden. As with all values, the names are <em>case sensitive</em>.</p>
+<ul>
+<li><code>Release.Name</code>: The name of the release (not the chart)</li>
+<li><code>Release.Time</code>: The time the chart release was last updated. This will match the <code>Last Released</code> time on a Release object.</li>
+<li><code>Release.Namespace</code>: The namespace the chart was released to.</li>
+<li><code>Release.Service</code>: The service that conducted the release. Usually this is <code>Tiller</code>.</li>
+<li><code>Release.IsUpgrade</code>: This is set to true if the current operation is an upgrade or rollback.</li>
+<li><code>Release.IsInstall</code>: This is set to true if the current operation is an install.</li>
+<li><code>Release.Revision</code>: The revision number. It begins at 1, and increments with each <code>helm upgrade</code>.</li>
+<li><code>Chart</code>: The contents of the <code>Chart.yaml</code>. Thus, the chart version is obtainable as <code>Chart.Version</code> and the maintainers are in <code>Chart.Maintainers</code>.</li>
+<li><code>Files</code>: A map-like object containing all non-special files in the chart. This will not give you access to templates, but will give you access to additional files that are present (unless they are excluded using <code>.helmignore</code>). Files can be accessed using <code>{{index .Files &quot;file.name&quot;}}</code> or using the <code>{{.Files.Get name}}</code> or <code>{{.Files.GetString name}}</code> functions. You can also access the contents of the file as <code>[]byte</code> using <code>{{.Files.GetBytes}}</code></li>
+<li><code>Capabilities</code>: A map-like object that contains information about the versions of Kubernetes (<code>{{.Capabilities.KubeVersion}}</code>, Tiller (<code>{{.Capabilities.TillerVersion}}</code>, and the supported Kubernetes API versions (<code>{{.Capabilities.APIVersions.Has &quot;batch/v1&quot;</code>)</li>
+</ul>
+<p><strong>NOTE:</strong> Any unknown Chart.yaml fields will be dropped. They will not be accessible inside of the <code>Chart</code> object. Thus, Chart.yaml cannot be used to pass arbitrarily structured data into the template. The values file can be used for that, though.</p>
+<h3 id="values-files">Values files</h3>
+<p>Considering the template in the previous section, a <code>values.yaml</code> file that supplies the necessary values would look like this:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="fu">imageRegistry:</span><span class="at"> </span><span class="st">&quot;quay.io/deis&quot;</span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="fu">dockerTag:</span><span class="at"> </span><span class="st">&quot;latest&quot;</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="fu">pullPolicy:</span><span class="at"> </span><span class="st">&quot;Always&quot;</span></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4"><span class="fu">storage:</span><span class="at"> </span><span class="st">&quot;s3&quot;</span></a></code></pre></div>
+<p>A values file is formatted in YAML. A chart may include a default <code>values.yaml</code> file. The Helm install command allows a user to override values by supplying additional YAML values:</p>
+<pre class="console"><code>$ helm install --values=myvals.yaml wordpress</code></pre>
+<p>When values are passed in this way, they will be merged into the default values file. For example, consider a <code>myvals.yaml</code> file that looks like this:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb23-1" data-line-number="1"><span class="fu">storage:</span><span class="at"> </span><span class="st">&quot;gcs&quot;</span></a></code></pre></div>
+<p>When this is merged with the <code>values.yaml</code> in the chart, the resulting generated content will be:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="fu">imageRegistry:</span><span class="at"> </span><span class="st">&quot;quay.io/deis&quot;</span></a>
+<a class="sourceLine" id="cb24-2" data-line-number="2"><span class="fu">dockerTag:</span><span class="at"> </span><span class="st">&quot;latest&quot;</span></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3"><span class="fu">pullPolicy:</span><span class="at"> </span><span class="st">&quot;Always&quot;</span></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4"><span class="fu">storage:</span><span class="at"> </span><span class="st">&quot;gcs&quot;</span></a></code></pre></div>
+<p>Note that only the last field was overridden.</p>
+<p><strong>NOTE:</strong> The default values file included inside of a chart <em>must</em> be named <code>values.yaml</code>. But files specified on the command line can be named anything.</p>
+<p><strong>NOTE:</strong> If the <code>--set</code> flag is used on <code>helm install</code> or <code>helm upgrade</code>, those values are simply converted to YAML on the client side.</p>
+<p><strong>NOTE:</strong> If any required entries in the values file exist, they can be declared as required in the chart template by using the <a href="charts_tips_and_tricks.html">‘required’ function</a></p>
+<p>Any of these values are then accessible inside of templates using the <code>.Values</code> object:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb25-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ReplicationController</span></a>
+<a class="sourceLine" id="cb25-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb25-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb25-5" data-line-number="5">  <span class="fu">namespace:</span><span class="at"> deis</span></a>
+<a class="sourceLine" id="cb25-6" data-line-number="6">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb25-7" data-line-number="7">    <span class="fu">app.kubernetes.io/managed-by:</span><span class="at"> deis</span></a>
+<a class="sourceLine" id="cb25-8" data-line-number="8"><span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb25-9" data-line-number="9">  <span class="fu">replicas:</span><span class="at"> 1</span></a>
+<a class="sourceLine" id="cb25-10" data-line-number="10">  <span class="fu">selector:</span></a>
+<a class="sourceLine" id="cb25-11" data-line-number="11">    <span class="fu">app.kubernetes.io/name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb25-12" data-line-number="12">  <span class="fu">template:</span></a>
+<a class="sourceLine" id="cb25-13" data-line-number="13">    <span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb25-14" data-line-number="14">      <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb25-15" data-line-number="15">        <span class="fu">app.kubernetes.io/name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb25-16" data-line-number="16">    <span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb25-17" data-line-number="17">      <span class="fu">serviceAccount:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb25-18" data-line-number="18">      <span class="fu">containers:</span></a>
+<a class="sourceLine" id="cb25-19" data-line-number="19">        <span class="kw">-</span> <span class="fu">name:</span><span class="at"> deis-database</span></a>
+<a class="sourceLine" id="cb25-20" data-line-number="20">          <span class="fu">image:</span><span class="at"> </span><span class="kw">{</span><span class="fu">{.Values.imageRegistry}}/postgres:</span><span class="kw">{</span>{.Values.dockerTag<span class="kw">}}</span></a>
+<a class="sourceLine" id="cb25-21" data-line-number="21">          <span class="fu">imagePullPolicy:</span><span class="at"> </span><span class="kw">{</span>{.Values.pullPolicy<span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb25-22" data-line-number="22">          <span class="fu">ports:</span></a>
+<a class="sourceLine" id="cb25-23" data-line-number="23">            <span class="kw">-</span> <span class="fu">containerPort:</span><span class="at"> 5432</span></a>
+<a class="sourceLine" id="cb25-24" data-line-number="24">          <span class="fu">env:</span></a>
+<a class="sourceLine" id="cb25-25" data-line-number="25">            <span class="kw">-</span> <span class="fu">name:</span><span class="at"> DATABASE_STORAGE</span></a>
+<a class="sourceLine" id="cb25-26" data-line-number="26">              <span class="fu">value:</span><span class="at"> </span><span class="kw">{</span>{default &quot;minio&quot; .Values.storage<span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<h3 id="scope-dependencies-and-values">Scope, Dependencies, and Values</h3>
+<p>Values files can declare values for the top-level chart, as well as for any of the charts that are included in that chart’s <code>charts/</code> directory. Or, to phrase it differently, a values file can supply values to the chart as well as to any of its dependencies. For example, the demonstration WordPress chart above has both <code>mysql</code> and <code>apache</code> as dependencies. The values file could supply values to all of these components:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb26-1" data-line-number="1"><span class="fu">title:</span><span class="at"> </span><span class="st">&quot;My WordPress Site&quot;</span><span class="er"> # Sent to the WordPress template</span></a>
+<a class="sourceLine" id="cb26-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb26-3" data-line-number="3"><span class="fu">mysql:</span></a>
+<a class="sourceLine" id="cb26-4" data-line-number="4">  <span class="fu">max_connections:</span><span class="at"> 100 </span><span class="co"># Sent to MySQL</span></a>
+<a class="sourceLine" id="cb26-5" data-line-number="5">  <span class="fu">password:</span><span class="at"> </span><span class="st">&quot;secret&quot;</span></a>
+<a class="sourceLine" id="cb26-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb26-7" data-line-number="7"><span class="fu">apache:</span></a>
+<a class="sourceLine" id="cb26-8" data-line-number="8">  <span class="fu">port:</span><span class="at"> 8080 </span><span class="co"># Passed to Apache</span></a></code></pre></div>
+<p>Charts at a higher level have access to all of the variables defined beneath. So the WordPress chart can access the MySQL password as <code>.Values.mysql.password</code>. But lower level charts cannot access things in parent charts, so MySQL will not be able to access the <code>title</code> property. Nor, for that matter, can it access <code>apache.port</code>.</p>
+<p>Values are namespaced, but namespaces are pruned. So for the WordPress chart, it can access the MySQL password field as <code>.Values.mysql.password</code>. But for the MySQL chart, the scope of the values has been reduced and the namespace prefix removed, so it will see the password field simply as <code>.Values.password</code>.</p>
+<h4 id="global-values">Global Values</h4>
+<p>As of 2.0.0-Alpha.2, Helm supports special “global” value. Consider this modified version of the previous example:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb27-1" data-line-number="1"><span class="fu">title:</span><span class="at"> </span><span class="st">&quot;My WordPress Site&quot;</span><span class="er"> # Sent to the WordPress template</span></a>
+<a class="sourceLine" id="cb27-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb27-3" data-line-number="3"><span class="fu">global:</span></a>
+<a class="sourceLine" id="cb27-4" data-line-number="4">  <span class="fu">app:</span><span class="at"> MyWordPress</span></a>
+<a class="sourceLine" id="cb27-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb27-6" data-line-number="6"><span class="fu">mysql:</span></a>
+<a class="sourceLine" id="cb27-7" data-line-number="7">  <span class="fu">max_connections:</span><span class="at"> 100 </span><span class="co"># Sent to MySQL</span></a>
+<a class="sourceLine" id="cb27-8" data-line-number="8">  <span class="fu">password:</span><span class="at"> </span><span class="st">&quot;secret&quot;</span></a>
+<a class="sourceLine" id="cb27-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb27-10" data-line-number="10"><span class="fu">apache:</span></a>
+<a class="sourceLine" id="cb27-11" data-line-number="11">  <span class="fu">port:</span><span class="at"> 8080 </span><span class="co"># Passed to Apache</span></a></code></pre></div>
+<p>The above adds a <code>global</code> section with the value <code>app: MyWordPress</code>. This value is available to <em>all</em> charts as <code>.Values.global.app</code>.</p>
+<p>For example, the <code>mysql</code> templates may access <code>app</code> as <code>{{.Values.global.app}}</code>, and so can the <code>apache</code> chart. Effectively, the values file above is regenerated like this:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="fu">title:</span><span class="at"> </span><span class="st">&quot;My WordPress Site&quot;</span><span class="er"> # Sent to the WordPress template</span></a>
+<a class="sourceLine" id="cb28-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb28-3" data-line-number="3"><span class="fu">global:</span></a>
+<a class="sourceLine" id="cb28-4" data-line-number="4">  <span class="fu">app:</span><span class="at"> MyWordPress</span></a>
+<a class="sourceLine" id="cb28-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb28-6" data-line-number="6"><span class="fu">mysql:</span></a>
+<a class="sourceLine" id="cb28-7" data-line-number="7">  <span class="fu">global:</span></a>
+<a class="sourceLine" id="cb28-8" data-line-number="8">    <span class="fu">app:</span><span class="at"> MyWordPress</span></a>
+<a class="sourceLine" id="cb28-9" data-line-number="9">  <span class="fu">max_connections:</span><span class="at"> 100 </span><span class="co"># Sent to MySQL</span></a>
+<a class="sourceLine" id="cb28-10" data-line-number="10">  <span class="fu">password:</span><span class="at"> </span><span class="st">&quot;secret&quot;</span></a>
+<a class="sourceLine" id="cb28-11" data-line-number="11"></a>
+<a class="sourceLine" id="cb28-12" data-line-number="12"><span class="fu">apache:</span></a>
+<a class="sourceLine" id="cb28-13" data-line-number="13">  <span class="fu">global:</span></a>
+<a class="sourceLine" id="cb28-14" data-line-number="14">    <span class="fu">app:</span><span class="at"> MyWordPress</span></a>
+<a class="sourceLine" id="cb28-15" data-line-number="15">  <span class="fu">port:</span><span class="at"> 8080 </span><span class="co"># Passed to Apache</span></a></code></pre></div>
+<p>This provides a way of sharing one top-level variable with all subcharts, which is useful for things like setting <code>metadata</code> properties like labels.</p>
+<p>If a subchart declares a global variable, that global will be passed <em>downward</em> (to the subchart’s subcharts), but not <em>upward</em> to the parent chart. There is no way for a subchart to influence the values of the parent chart.</p>
+<p>Also, global variables of parent charts take precedence over the global variables from subcharts.</p>
+<h3 id="references">References</h3>
+<p>When it comes to writing templates and values files, there are several standard references that will help you out.</p>
+<ul>
+<li><a href="https://godoc.org/text/template">Go templates</a></li>
+<li><a href="https://godoc.org/github.com/Masterminds/sprig">Extra template functions</a></li>
+<li><a href="http://yaml.org/spec/">The YAML format</a></li>
+</ul>
+<h2 id="using-helm-to-manage-charts">Using Helm to Manage Charts</h2>
+<p>The <code>helm</code> tool has several commands for working with charts.</p>
+<p>It can create a new chart for you:</p>
+<pre class="console"><code>$ helm create mychart
+Created mychart/</code></pre>
+<p>Once you have edited a chart, <code>helm</code> can package it into a chart archive for you:</p>
+<pre class="console"><code>$ helm package mychart
+Archived mychart-0.1.-.tgz</code></pre>
+<p>You can also use <code>helm</code> to help you find issues with your chart’s formatting or information:</p>
+<pre class="console"><code>$ helm lint mychart
+No issues found</code></pre>
+<h2 id="chart-repositories">Chart Repositories</h2>
+<p>A <em>chart repository</em> is an HTTP server that houses one or more packaged charts. While <code>helm</code> can be used to manage local chart directories, when it comes to sharing charts, the preferred mechanism is a chart repository.</p>
+<p>Any HTTP server that can serve YAML files and tar files and can answer GET requests can be used as a repository server.</p>
+<p>Helm comes with built-in package server for developer testing (<code>helm serve</code>). The Helm team has tested other servers, including Google Cloud Storage with website mode enabled, and S3 with website mode enabled.</p>
+<p>A repository is characterized primarily by the presence of a special file called <code>index.yaml</code> that has a list of all of the packages supplied by the repository, together with metadata that allows retrieving and verifying those packages.</p>
+<p>On the client side, repositories are managed with the <code>helm repo</code> commands. However, Helm does not provide tools for uploading charts to remote repository servers. This is because doing so would add substantial requirements to an implementing server, and thus raise the barrier for setting up a repository.</p>
+<h2 id="chart-starter-packs">Chart Starter Packs</h2>
+<p>The <code>helm create</code> command takes an optional <code>--starter</code> option that lets you specify a “starter chart”.</p>
+<p>Starters are just regular charts, but are located in <code>$HELM_HOME/starters</code>. As a chart developer, you may author charts that are specifically designed to be used as starters. Such charts should be designed with the following considerations in mind:</p>
+<ul>
+<li>The <code>Chart.yaml</code> will be overwritten by the generator.</li>
+<li>Users will expect to modify such a chart’s contents, so documentation should indicate how users can do so.</li>
+<li>All occurrences of <code>&lt;CHARTNAME&gt;</code> will be replaced with the specified chart name so that starter charts can be used as templates.</li>
+</ul>
+<p>Currently the only way to add a chart to <code>$HELM_HOME/starters</code> is to manually copy it there. In your chart’s documentation, you may want to explain that process.</p>
+</body>
+</html>
+</div>

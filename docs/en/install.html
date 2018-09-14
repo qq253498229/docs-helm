@@ -1,0 +1,185 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="installing-helm">Installing Helm</h1>
+<p>There are two parts to Helm: The Helm client (<code>helm</code>) and the Helm server (Tiller). This guide shows how to install the client, and then proceeds to show two ways to install the server.</p>
+<p><strong>IMPORTANT</strong>: If you are responsible for ensuring your cluster is a controlled environment, especially when resources are shared, it is strongly recommended installing Tiller using a secured configuration. For guidance, see <a href="securing_installation.html">Securing your Helm Installation</a>.</p>
+<h2 id="installing-the-helm-client">Installing the Helm Client</h2>
+<p>The Helm client can be installed either from source, or from pre-built binary releases.</p>
+<h3 id="from-the-binary-releases">From the Binary Releases</h3>
+<p>Every <a href="https://github.com/kubernetes/helm/releases">release</a> of Helm provides binary releases for a variety of OSes. These binary versions can be manually downloaded and installed.</p>
+<ol type="1">
+<li>Download your <a href="https://github.com/kubernetes/helm/releases">desired version</a></li>
+<li>Unpack it (<code>tar -zxvf helm-v2.0.0-linux-amd64.tgz</code>)</li>
+<li>Find the <code>helm</code> binary in the unpacked directory, and move it to its desired destination (<code>mv linux-amd64/helm /usr/local/bin/helm</code>)</li>
+</ol>
+<p>From there, you should be able to run the client: <code>helm help</code>.</p>
+<h3 id="from-snap-linux">From Snap (Linux)</h3>
+<p>The Snap package for Helm is maintained by <a href="https://github.com/snapcrafters/helm">Snapcrafters</a>.</p>
+<pre><code>$ sudo snap install helm</code></pre>
+<h3 id="from-homebrew-macos">From Homebrew (macOS)</h3>
+<p>Members of the Kubernetes community have contributed a Helm formula build to Homebrew. This formula is generally up to date.</p>
+<pre><code>brew install kubernetes-helm</code></pre>
+<p>(Note: There is also a formula for emacs-helm, which is a different project.)</p>
+<h3 id="from-chocolatey-windows">From Chocolatey (Windows)</h3>
+<p>Members of the Kubernetes community have contributed a <a href="https://chocolatey.org/packages/kubernetes-helm">Helm package</a> build to <a href="https://chocolatey.org/">Chocolatey</a>. This package is generally up to date.</p>
+<pre><code>choco install kubernetes-helm</code></pre>
+<h2 id="from-script">From Script</h2>
+<p>Helm now has an installer script that will automatically grab the latest version of the Helm client and <a href="https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get">install it locally</a>.</p>
+<p>You can fetch that script, and then execute it locally. It’s well documented so that you can read through it and understand what it is doing before you run it.</p>
+<pre><code>$ curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &gt; get_helm.sh
+$ chmod 700 get_helm.sh
+$ ./get_helm.sh</code></pre>
+<p>Yes, you can <code>curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash</code> that if you want to live on the edge.</p>
+<h3 id="from-canary-builds">From Canary Builds</h3>
+<p>“Canary” builds are versions of the Helm software that are built from the latest master branch. They are not official releases, and may not be stable. However, they offer the opportunity to test the cutting edge features.</p>
+<p>Canary Helm binaries are stored in the <a href="https://kubernetes-helm.storage.googleapis.com">Kubernetes Helm GCS bucket</a>. Here are links to the common builds:</p>
+<ul>
+<li><a href="https://kubernetes-helm.storage.googleapis.com/helm-canary-linux-amd64.tar.gz">Linux AMD64</a></li>
+<li><a href="https://kubernetes-helm.storage.googleapis.com/helm-canary-darwin-amd64.tar.gz">macOS AMD64</a></li>
+<li><a href="https://kubernetes-helm.storage.googleapis.com/helm-canary-windows-amd64.zip">Experimental Windows AMD64</a></li>
+</ul>
+<h3 id="from-source-linux-macos">From Source (Linux, macOS)</h3>
+<p>Building Helm from source is slightly more work, but is the best way to go if you want to test the latest (pre-release) Helm version.</p>
+<p>You must have a working Go environment with <a href="https://github.com/Masterminds/glide">glide</a> installed.</p>
+<pre class="console"><code>$ cd $GOPATH
+$ mkdir -p src/k8s.io
+$ cd src/k8s.io
+$ git clone https://github.com/kubernetes/helm.git
+$ cd helm
+$ make bootstrap build</code></pre>
+<p>The <code>bootstrap</code> target will attempt to install dependencies, rebuild the <code>vendor/</code> tree, and validate configuration.</p>
+<p>The <code>build</code> target will compile <code>helm</code> and place it in <code>bin/helm</code>. Tiller is also compiled, and is placed in <code>bin/tiller</code>.</p>
+<h2 id="installing-tiller">Installing Tiller</h2>
+<p>Tiller, the server portion of Helm, typically runs inside of your Kubernetes cluster. But for development, it can also be run locally, and configured to talk to a remote Kubernetes cluster.</p>
+<h3 id="easy-in-cluster-installation">Easy In-Cluster Installation</h3>
+<p>The easiest way to install <code>tiller</code> into the cluster is simply to run <code>helm init</code>. This will validate that <code>helm</code>’s local environment is set up correctly (and set it up if necessary). Then it will connect to whatever cluster <code>kubectl</code> connects to by default (<code>kubectl config view</code>). Once it connects, it will install <code>tiller</code> into the <code>kube-system</code> namespace.</p>
+<p>After <code>helm init</code>, you should be able to run <code>kubectl get pods --namespace kube-system</code> and see Tiller running.</p>
+<p>You can explicitly tell <code>helm init</code> to…</p>
+<ul>
+<li>Install the canary build with the <code>--canary-image</code> flag</li>
+<li>Install a particular image (version) with <code>--tiller-image</code></li>
+<li>Install to a particular cluster with <code>--kube-context</code></li>
+<li>Install into a particular namespace with <code>--tiller-namespace</code></li>
+<li>Install Tiller with a Service Account with <code>--service-account</code> (for <a href="securing_installation.md#rbac">RBAC enabled clusters</a>)</li>
+</ul>
+<p>Once Tiller is installed, running <code>helm version</code> should show you both the client and server version. (If it shows only the client version, <code>helm</code> cannot yet connect to the server. Use <code>kubectl</code> to see if any <code>tiller</code> pods are running.)</p>
+<p>Helm will look for Tiller in the <code>kube-system</code> namespace unless <code>--tiller-namespace</code> or <code>TILLER_NAMESPACE</code> is set.</p>
+<h3 id="installing-tiller-canary-builds">Installing Tiller Canary Builds</h3>
+<p>Canary images are built from the <code>master</code> branch. They may not be stable, but they offer you the chance to test out the latest features.</p>
+<p>The easiest way to install a canary image is to use <code>helm init</code> with the <code>--canary-image</code> flag:</p>
+<pre class="console"><code>$ helm init --canary-image</code></pre>
+<p>This will use the most recently built container image. You can always uninstall Tiller by deleting the Tiller deployment from the <code>kube-system</code> namespace using <code>kubectl</code>.</p>
+<h3 id="running-tiller-locally">Running Tiller Locally</h3>
+<p>For development, it is sometimes easier to work on Tiller locally, and configure it to connect to a remote Kubernetes cluster.</p>
+<p>The process of building Tiller is explained above.</p>
+<p>Once <code>tiller</code> has been built, simply start it:</p>
+<pre class="console"><code>$ bin/tiller
+Tiller running on :44134</code></pre>
+<p>When Tiller is running locally, it will attempt to connect to the Kubernetes cluster that is configured by <code>kubectl</code>. (Run <code>kubectl config view</code> to see which cluster that is.)</p>
+<p>You must tell <code>helm</code> to connect to this new local Tiller host instead of connecting to the one in-cluster. There are two ways to do this. The first is to specify the <code>--host</code> option on the command line. The second is to set the <code>$HELM_HOST</code> environment variable.</p>
+<pre class="console"><code>$ export HELM_HOST=localhost:44134
+$ helm version # Should connect to localhost.
+Client: &amp;version.Version{SemVer:&quot;v2.0.0-alpha.4&quot;, GitCommit:&quot;db...&quot;, GitTreeState:&quot;dirty&quot;}
+Server: &amp;version.Version{SemVer:&quot;v2.0.0-alpha.4&quot;, GitCommit:&quot;a5...&quot;, GitTreeState:&quot;dirty&quot;}</code></pre>
+<p>Importantly, even when running locally, Tiller will store release configuration in ConfigMaps inside of Kubernetes.</p>
+<h2 id="upgrading-tiller">Upgrading Tiller</h2>
+<p>As of Helm 2.2.0, Tiller can be upgraded using <code>helm init --upgrade</code>.</p>
+<p>For older versions of Helm, or for manual upgrades, you can use <code>kubectl</code> to modify the Tiller image:</p>
+<pre class="console"><code>$ export TILLER_TAG=v2.0.0-beta.1        # Or whatever version you want
+$ kubectl --namespace=kube-system set image deployments/tiller-deploy tiller=gcr.io/kubernetes-helm/tiller:$TILLER_TAG
+deployment &quot;tiller-deploy&quot; image updated</code></pre>
+<p>Setting <code>TILLER_TAG=canary</code> will get the latest snapshot of master.</p>
+<h2 id="deleting-or-reinstalling-tiller">Deleting or Reinstalling Tiller</h2>
+<p>Because Tiller stores its data in Kubernetes ConfigMaps, you can safely delete and re-install Tiller without worrying about losing any data. The recommended way of deleting Tiller is with <code>kubectl delete deployment tiller-deploy --namespace kube-system</code>, or more concisely <code>helm reset</code>.</p>
+<p>Tiller can then be re-installed from the client with:</p>
+<pre class="console"><code>$ helm init</code></pre>
+<h2 id="advanced-usage">Advanced Usage</h2>
+<p><code>helm init</code> provides additional flags for modifying Tiller’s deployment manifest before it is installed.</p>
+<h3 id="using---node-selectors">Using <code>--node-selectors</code></h3>
+<p>The <code>--node-selectors</code> flag allows us to specify the node labels required for scheduling the Tiller pod.</p>
+<p>The example below will create the specified label under the nodeSelector property.</p>
+<pre><code>helm init --node-selectors &quot;beta.kubernetes.io/os&quot;=&quot;linux&quot;</code></pre>
+<p>The installed deployment manifest will contain our node selector label.</p>
+<pre><code>...
+spec:
+  template:
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+...</code></pre>
+<h3 id="using---override">Using <code>--override</code></h3>
+<p><code>--override</code> allows you to specify properties of Tiller’s deployment manifest. Unlike the <code>--set</code> command used elsewhere in Helm, <code>helm init --override</code> manipulates the specified properties of the final manifest (there is no “values” file). Therefore you may specify any valid value for any valid property in the deployment manifest.</p>
+<h4 id="override-annotation">Override annotation</h4>
+<p>In the example below we use <code>--override</code> to add the revision property and set its value to 1.</p>
+<pre><code>helm init --override metadata.annotations.&quot;deployment\.kubernetes\.io/revision&quot;=&quot;1&quot;</code></pre>
+<p>Output:</p>
+<pre><code>apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: &quot;1&quot;
+...</code></pre>
+<h4 id="override-affinity">Override affinity</h4>
+<p>In the example below we set properties for node affinity. Multiple <code>--override</code> commands may be combined to modify different properties of the same list item.</p>
+<pre><code>helm init --override &quot;spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight&quot;=&quot;1&quot; --override &quot;spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key&quot;=&quot;e2e-az-name&quot;</code></pre>
+<p>The specified properties are combined into the “preferredDuringSchedulingIgnoredDuringExecution” property’s first list item.</p>
+<pre><code>...
+spec:
+  strategy: {}
+  template:
+    ...
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: e2e-az-name
+                operator: &quot;&quot;
+            weight: 1
+...</code></pre>
+<h3 id="using---output">Using <code>--output</code></h3>
+<p>The <code>--output</code> flag allows us skip the installation of Tiller’s deployment manifest and simply output the deployment manifest to stdout in either JSON or YAML format. The output may then be modified with tools like <code>jq</code> and installed manually with <code>kubectl</code>.</p>
+<p>In the example below we execute <code>helm init</code> with the <code>--output json</code> flag.</p>
+<pre><code>helm init --output json</code></pre>
+<p>The Tiller installation is skipped and the manifest is output to stdout in JSON format.</p>
+<pre><code>&quot;apiVersion&quot;: &quot;extensions/v1beta1&quot;,
+&quot;kind&quot;: &quot;Deployment&quot;,
+&quot;metadata&quot;: {
+    &quot;creationTimestamp&quot;: null,
+    &quot;labels&quot;: {
+        &quot;app&quot;: &quot;helm&quot;,
+        &quot;name&quot;: &quot;tiller&quot;
+    },
+    &quot;name&quot;: &quot;tiller-deploy&quot;,
+    &quot;namespace&quot;: &quot;kube-system&quot;
+},
+...</code></pre>
+<h3 id="storage-backends">Storage backends</h3>
+<p>By default, <code>tiller</code> stores release information in <code>ConfigMaps</code> in the namespace where it is running. As of Helm 2.7.0, there is now a beta storage backend that uses <code>Secrets</code> for storing release information. This was added for additional security in protecting charts in conjunction with the release of <code>Secret</code> encryption in Kubernetes.</p>
+<p>To enable the secrets backend, you’ll need to init Tiller with the following options:</p>
+<pre class="shell"><code>helm init --override &#39;spec.template.spec.containers[0].command&#39;=&#39;{/tiller,--storage=secret}&#39;</code></pre>
+<p>Currently, if you want to switch from the default backend to the secrets backend, you’ll have to do the migration for this on your own. When this backend graduates from beta, there will be a more official path of migration</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In most cases, installation is as simple as getting a pre-built <code>helm</code> binary and running <code>helm init</code>. This document covers additional cases for those who want to do more sophisticated things with Helm.</p>
+<p>Once you have the Helm Client and Tiller successfully installed, you can move on to using Helm to manage charts.</p>
+</body>
+</html>
+</div>

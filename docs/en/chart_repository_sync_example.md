@@ -7,7 +7,7 @@
 * _Optional: We recommend you set [object versioning](https://cloud.google.com/storage/docs/gsutil/addlhelp/ObjectVersioningandConcurrencyControl#top_of_page) on your GCS bucket in case you accidentally delete something._
 
 ## Set up a local chart repository directory
-Create a local directory like we did in [the chart repository guide](chart_repository.md), and place your packaged charts in that directory.
+Create a local directory like we did in [the chart repository guide](chart_repository.html), and place your packaged charts in that directory.
 
 For example:
 ```console
@@ -70,5 +70,5 @@ Downloading file://local-dir/index.yaml:                              346 B/346 
 
 Helpful Links:
 * Documentation on [gsutil rsync](https://cloud.google.com/storage/docs/gsutil/commands/rsync#description)
-* [The Chart Repository Guide](chart_repository.md)
+* [The Chart Repository Guide](chart_repository.html)
 * Documentation on [object versioning and concurrency control](https://cloud.google.com/storage/docs/gsutil/addlhelp/ObjectVersioningandConcurrencyControl#overview) in Google Cloud Storage

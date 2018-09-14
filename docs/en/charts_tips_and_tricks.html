@@ -1,0 +1,205 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="chart-development-tips-and-tricks">Chart Development Tips and Tricks</h1>
+<p>This guide covers some of the tips and tricks Helm chart developers have learned while building production-quality charts.</p>
+<h2 id="know-your-template-functions">Know Your Template Functions</h2>
+<p>Helm uses <a href="https://godoc.org/text/template">Go templates</a> for templating your resource files. While Go ships several built-in functions, we have added many others.</p>
+<p>First, we added almost all of the functions in the <a href="https://godoc.org/github.com/Masterminds/sprig">Sprig library</a>. We removed two for security reasons: <code>env</code> and <code>expandenv</code> (which would have given chart authors access to Tiller’s environment).</p>
+<p>We also added two special template functions: <code>include</code> and <code>required</code>. The <code>include</code> function allows you to bring in another template, and then pass the results to other template functions.</p>
+<p>For example, this template snippet includes a template called <code>mytpl</code>, then lowercases the result, then wraps that in double quotes.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">value:</span><span class="at"> </span><span class="kw">{</span>{include &quot;mytpl&quot; . | lower | quote<span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<p>The <code>required</code> function allows you to declare a particular values entry as required for template rendering. If the value is empty, the template rendering will fail with a user submitted error message.</p>
+<p>The following example of the <code>required</code> function declares an entry for .Values.who is required, and will print an error message when that entry is missing:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">value:</span><span class="at"> </span><span class="kw">{</span>{required &quot;A valid .Values.who entry required!&quot; .Values.who <span class="kw">}</span><span class="at">}</span></a></code></pre></div>
+<h2 id="quote-strings-dont-quote-integers">Quote Strings, Don’t Quote Integers</h2>
+<p>When you are working with string data, you are always safer quoting the strings than leaving them as bare words:</p>
+<pre><code>name: {{.Values.MyName | quote }}</code></pre>
+<p>But when working with integers <em>do not quote the values.</em> That can, in many cases, cause parsing errors inside of Kubernetes.</p>
+<pre><code>port: {{ .Values.Port }}</code></pre>
+<p>This remark does not apply to env variables values which are expected to be string, even if they represent integers:</p>
+<pre><code>env:
+  -name: HOST
+    value: &quot;http://host&quot;
+  -name: PORT
+    value: &quot;1234&quot;</code></pre>
+<h2 id="using-the-include-function">Using the ‘include’ Function</h2>
+<p>Go provides a way of including one template in another using a built-in <code>template</code> directive. However, the built-in function cannot be used in Go template pipelines.</p>
+<p>To make it possible to include a template, and then perform an operation on that template’s output, Helm has a special <code>include</code> function:</p>
+<pre><code>{{ include &quot;toYaml&quot; $value | indent 2 }}</code></pre>
+<p>The above includes a template called <code>toYaml</code>, passes it <code>$value</code>, and then passes the output of that template to the <code>indent</code> function.</p>
+<p>Because YAML ascribes significance to indentation levels and whitespace, this is one great way to include snippets of code, but handle indentation in a relevant context.</p>
+<h2 id="using-the-required-function">Using the ‘required’ function</h2>
+<p>Go provides a way for setting template options to control behavior when a map is indexed with a key that’s not present in the map. This is typically set with template.Options(“missingkey=option”), where option can be default, zero, or error. While setting this option to error will stop execution with an error, this would apply to every missing key in the map. There may be situations where a chart developer wants to enforce this behavior for select values in the values.yml file.</p>
+<p>The <code>required</code> function gives developers the ability to declare a value entry as required for template rendering. If the entry is empty in values.yml, the template will not render and will return an error message supplied by the developer.</p>
+<p>For example:</p>
+<pre><code>{{ required &quot;A valid foo is required!&quot; .Values.foo }}</code></pre>
+<p>The above will render the template when .Values.foo is defined, but will fail to render and exit when .Values.foo is undefined.</p>
+<h2 id="using-the-tpl-function">Using the ‘tpl’ Function</h2>
+<p>The <code>tpl</code> function allows developers to evaluate strings as templates inside a template. This is useful to pass a template string as a value to a chart or render external configuration files.<br />
+Syntax: <code>{{ tpl TEMPLATE_STRING VALUES }}</code></p>
+<p>Examples:</p>
+<pre><code># values
+template: &quot;{{ .Values.name }}&quot;
+name: &quot;Tom&quot;
+
+# template
+{{ tpl .Values.template . }}
+
+# output
+Tom</code></pre>
+<p>Rendering a external configuration file:</p>
+<pre><code># external configuration file conf/app.conf
+firstName={{ .Values.firstName }}
+lastName={{ .Values.lastName }}
+
+# values
+firstName: Peter
+lastName: Parker
+
+# template
+{{ tpl (.Files.Get &quot;conf/app.conf&quot;) . }}
+
+# output
+firstName=Peter
+lastName=Parker</code></pre>
+<h2 id="creating-image-pull-secrets">Creating Image Pull Secrets</h2>
+<p>Image pull secrets are essentially a combination of <em>registry</em>, <em>username</em>, and <em>password</em>. You may need them in an application you are deploying, but to create them requires running <em>base64</em> a couple of times. We can write a helper template to compose the Docker configuration file for use as the Secret’s payload. Here is an example:</p>
+<p>First, assume that the credentials are defined in the <code>values.yaml</code> file like so:</p>
+<pre><code>imageCredentials:
+  registry: quay.io
+  username: someone
+  password: sillyness</code></pre>
+<p>We then define our helper template as follows:</p>
+<pre><code>{{- define &quot;imagePullSecret&quot; }}
+{{- printf &quot;{\&quot;auths\&quot;: {\&quot;%s\&quot;: {\&quot;auth\&quot;: \&quot;%s\&quot;}}}&quot; .Values.imageCredentials.registry (printf &quot;%s:%s&quot; .Values.imageCredentials.username .Values.imageCredentials.password | b64enc) | b64enc }}
+{{- end }}</code></pre>
+<p>Finally, we use the helper template in a larger template to create the Secret manifest:</p>
+<pre><code>apiVersion: v1
+kind: Secret
+metadata:
+  name: myregistrykey
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ template &quot;imagePullSecret&quot; . }}</code></pre>
+<h2 id="automatically-roll-deployments-when-configmaps-or-secrets-change">Automatically Roll Deployments When ConfigMaps or Secrets change</h2>
+<p>Often times configmaps or secrets are injected as configuration files in containers. Depending on the application a restart may be required should those be updated with a subsequent <code>helm upgrade</code>, but if the deployment spec itself didn’t change the application keeps running with the old configuration resulting in an inconsistent deployment.</p>
+<p>The <code>sha256sum</code> function can be used to ensure a deployment’s annotation section is updated if another file changes:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="fu">kind:</span><span class="at"> Deployment</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">  <span class="fu">template:</span></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">    <span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">      <span class="fu">annotations:</span></a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">        <span class="fu">checksum/config:</span><span class="at"> </span><span class="kw">{</span>{ include (print $.Template.BasePath &quot;/configmap.yaml&quot;) . | sha256sum <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb13-7" data-line-number="7"><span class="kw">[</span>...<span class="kw">]</span></a></code></pre></div>
+<p>See also the <code>helm upgrade --recreate-pods</code> flag for a slightly different way of addressing this issue.</p>
+<h2 id="tell-tiller-not-to-delete-a-resource">Tell Tiller Not To Delete a Resource</h2>
+<p>Sometimes there are resources that should not be deleted when Helm runs a <code>helm delete</code>. Chart developers can add an annotation to a resource to prevent it from being deleted.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="fu">kind:</span><span class="at"> Secret</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3">  <span class="fu">annotations:</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4">    <span class="fu">&quot;helm.sh/resource-policy&quot;:</span><span class="at"> keep</span></a>
+<a class="sourceLine" id="cb14-5" data-line-number="5"><span class="kw">[</span>...<span class="kw">]</span></a></code></pre></div>
+<p>(Quotation marks are required)</p>
+<p>The annotation <code>&quot;helm.sh/resource-policy&quot;: keep</code> instructs Tiller to skip this resource during a <code>helm delete</code> operation. <em>However</em>, this resource becomes orphaned. Helm will no longer manage it in any way. This can lead to problems if using <code>helm install --replace</code> on a release that has already been deleted, but has kept resources.</p>
+<h2 id="using-partials-and-template-includes">Using “Partials” and Template Includes</h2>
+<p>Sometimes you want to create some reusable parts in your chart, whether they’re blocks or template partials. And often, it’s cleaner to keep these in their own files.</p>
+<p>In the <code>templates/</code> directory, any file that begins with an underscore(<code>_</code>) is not expected to output a Kubernetes manifest file. So by convention, helper templates and partials are placed in a <code>_helpers.tpl</code> file.</p>
+<h2 id="complex-charts-with-many-dependencies">Complex Charts with Many Dependencies</h2>
+<p>Many of the charts in the <a href="https://github.com/kubernetes/charts">official charts repository</a> are “building blocks” for creating more advanced applications. But charts may be used to create instances of large-scale applications. In such cases, a single umbrella chart may have multiple subcharts, each of which functions as a piece of the whole.</p>
+<p>The current best practice for composing a complex application from discrete parts is to create a top-level umbrella chart that exposes the global configurations, and then use the <code>charts/</code> subdirectory to embed each of the components.</p>
+<p>Two strong design patterns are illustrated by these projects:</p>
+<p><strong>SAP’s <a href="https://github.com/sapcc/openstack-helm">OpenStack chart</a>:</strong> This chart installs a full OpenStack IaaS on Kubernetes. All of the charts are collected together in one GitHub repository.</p>
+<p><strong>Deis’s <a href="https://github.com/deis/workflow/tree/master/charts/workflow">Workflow</a>:</strong> This chart exposes the entire Deis PaaS system with one chart. But it’s different from the SAP chart in that this umbrella chart is built from each component, and each component is tracked in a different Git repository. Check out the <code>requirements.yaml</code> file to see how this chart is composed by their CI/CD pipeline.</p>
+<p>Both of these charts illustrate proven techniques for standing up complex environments using Helm.</p>
+<h2 id="yaml-is-a-superset-of-json">YAML is a Superset of JSON</h2>
+<p>According to the YAML specification, YAML is a superset of JSON. That means that any valid JSON structure ought to be valid in YAML.</p>
+<p>This has an advantage: Sometimes template developers may find it easier to express a datastructure with a JSON-like syntax rather than deal with YAML’s whitespace sensitivity.</p>
+<p>As a best practice, templates should follow a YAML-like syntax <em>unless</em> the JSON syntax substantially reduces the risk of a formatting issue.</p>
+<h2 id="be-careful-with-generating-random-values">Be Careful with Generating Random Values</h2>
+<p>There are functions in Helm that allow you to generate random data, cryptographic keys, and so on. These are fine to use. But be aware that during upgrades, templates are re-executed. When a template run generates data that differs from the last run, that will trigger an update of that resource.</p>
+<h2 id="upgrade-a-release-idempotently">Upgrade a release idempotently</h2>
+<p>In order to use the same command when installing and upgrading a release, use the following command:</p>
+<pre class="shell"><code>helm upgrade --install &lt;release name&gt; --values &lt;values file&gt; &lt;chart directory&gt;</code></pre>
+</body>
+</html>
+</div>

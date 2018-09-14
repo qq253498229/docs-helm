@@ -9,13 +9,13 @@ may find that their internal interests override our suggestions here.
 
 ## Table of Contents
 
-- [General Conventions](conventions.md): Learn about general chart conventions.
-- [Values Files](values.md): See the best practices for structuring `values.yaml`.
-- [Templates](templates.md): Learn some of the best techniques for writing templates.
-- [Requirements](requirements.md): Follow best practices for `requirements.yaml` files.
-- [Labels and Annotations](labels.md): Helm has a _heritage_ of labeling and annotating.
+- [General Conventions](conventions.html): Learn about general chart conventions.
+- [Values Files](values.html): See the best practices for structuring `values.yaml`.
+- [Templates](templates.html): Learn some of the best techniques for writing templates.
+- [Requirements](requirements.html): Follow best practices for `requirements.yaml` files.
+- [Labels and Annotations](labels.html): Helm has a _heritage_ of labeling and annotating.
 - Kubernetes Resources:
-	- [Pods and Pod Specs](pods.md): See the best practices for working with pod specifications.
-	- [Role-Based Access Control](rbac.md): Guidance on creating and using service accounts, roles, and role bindings.
-	- [Custom Resource Definitions](custom_resource_definitions.md): Custom Resource Definitions (CRDs) have their own associated best practices.
+	- [Pods and Pod Specs](pods.html): See the best practices for working with pod specifications.
+	- [Role-Based Access Control](rbac.html): Guidance on creating and using service accounts, roles, and role bindings.
+	- [Custom Resource Definitions](custom_resource_definitions.html): Custom Resource Definitions (CRDs) have their own associated best practices.
 

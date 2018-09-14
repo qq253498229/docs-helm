@@ -1,0 +1,77 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="syncing-your-chart-repository">Syncing Your Chart Repository</h1>
+<p><em>Note: This example is specifically for a Google Cloud Storage (GCS) bucket which serves a chart repository.</em></p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Install the <a href="https://cloud.google.com/storage/docs/gsutil">gsutil</a> tool. <em>We rely heavily on the gsutil rsync functionality</em></li>
+<li>Be sure to have access to the Helm binary</li>
+<li><em>Optional: We recommend you set <a href="https://cloud.google.com/storage/docs/gsutil/addlhelp/ObjectVersioningandConcurrencyControl#top_of_page">object versioning</a> on your GCS bucket in case you accidentally delete something.</em></li>
+</ul>
+<h2 id="set-up-a-local-chart-repository-directory">Set up a local chart repository directory</h2>
+<p>Create a local directory like we did in <a href="chart_repository.html">the chart repository guide</a>, and place your packaged charts in that directory.</p>
+<p>For example:</p>
+<pre class="console"><code>$ mkdir fantastic-charts
+$ mv alpine-0.1.0.tgz fantastic-charts/</code></pre>
+<h2 id="generate-an-updated-index.yaml">Generate an updated index.yaml</h2>
+<p>Use Helm to generate an updated index.yaml file by passing in the directory path and the url of the remote repository to the <code>helm repo index</code> command like this:</p>
+<pre class="console"><code>$ helm repo index fantastic-charts/ --url https://fantastic-charts.storage.googleapis.com</code></pre>
+<p>This will generate an updated index.yaml file and place in the <code>fantastic-charts/</code> directory.</p>
+<h2 id="sync-your-local-and-remote-chart-repositories">Sync your local and remote chart repositories</h2>
+<p>Upload the contents of the directory to your GCS bucket by running <code>scripts/sync-repo.sh</code> and pass in the local directory name and the GCS bucket name.</p>
+<p>For example:</p>
+<pre class="console"><code>$ pwd
+/Users/funuser/go/src/github.com/kubernetes/helm
+$ scripts/sync-repo.sh fantastic-charts/ fantastic-charts
+Getting ready to sync your local directory (fantastic-charts/) to a remote repository at gs://fantastic-charts
+Verifying Prerequisites....
+Thumbs up! Looks like you have gsutil. Let&#39;s continue.
+Building synchronization state...
+Starting synchronization
+Would copy file://fantastic-charts/alpine-0.1.0.tgz to gs://fantastic-charts/alpine-0.1.0.tgz
+Would copy file://fantastic-charts/index.yaml to gs://fantastic-charts/index.yaml
+Are you sure you would like to continue with these changes?? [y/N]} y
+Building synchronization state...
+Starting synchronization
+Copying file://fantastic-charts/alpine-0.1.0.tgz [Content-Type=application/x-tar]...
+Uploading   gs://fantastic-charts/alpine-0.1.0.tgz:              740 B/740 B
+Copying file://fantastic-charts/index.yaml [Content-Type=application/octet-stream]...
+Uploading   gs://fantastic-charts/index.yaml:                    347 B/347 B
+Congratulations your remote chart repository now matches the contents of fantastic-charts/</code></pre>
+<h2 id="updating-your-chart-repository">Updating your chart repository</h2>
+<p>You’ll want to keep a local copy of the contents of your chart repository or use <code>gsutil rsync</code> to copy the contents of your remote chart repository to a local directory.</p>
+<p>For example:</p>
+<pre class="console"><code>$ gsutil rsync -d -n gs://bucket-name local-dir/    # the -n flag does a dry run
+Building synchronization state...
+Starting synchronization
+Would copy gs://bucket-name/alpine-0.1.0.tgz to file://local-dir/alpine-0.1.0.tgz
+Would copy gs://bucket-name/index.yaml to file://local-dir/index.yaml
+
+$ gsutil rsync -d gs://bucket-name local-dir/       # performs the copy actions
+Building synchronization state...
+Starting synchronization
+Copying gs://bucket-name/alpine-0.1.0.tgz...
+Downloading file://local-dir/alpine-0.1.0.tgz:                        740 B/740 B
+Copying gs://bucket-name/index.yaml...
+Downloading file://local-dir/index.yaml:                              346 B/346 B</code></pre>
+<p>Helpful Links: * Documentation on <a href="https://cloud.google.com/storage/docs/gsutil/commands/rsync#description">gsutil rsync</a> * <a href="chart_repository.html">The Chart Repository Guide</a> * Documentation on <a href="https://cloud.google.com/storage/docs/gsutil/addlhelp/ObjectVersioningandConcurrencyControl#overview">object versioning and concurrency control</a> in Google Cloud Storage</p>
+</body>
+</html>
+</div>

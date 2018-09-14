@@ -1,0 +1,47 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="kubernetes-distribution-guide">Kubernetes Distribution Guide</h1>
+<p>This document captures information about using Helm in specific Kubernetes environments.</p>
+<p>We are trying to add more details to this document. Please contribute via Pull Requests if you can.</p>
+<h2 id="minikube">MiniKube</h2>
+<p>Helm is tested and known to work with <a href="https://github.com/kubernetes/minikube">minikube</a>. It requires no additional configuration.</p>
+<h2 id="scriptslocal-cluster-and-hyperkube"><code>scripts/local-cluster</code> and Hyperkube</h2>
+<p>Hyperkube configured via <code>scripts/local-cluster.sh</code> is known to work. For raw Hyperkube you may need to do some manual configuration.</p>
+<h2 id="gke">GKE</h2>
+<p>Google’s GKE hosted Kubernetes platform enables RBAC by default. You will need to create a service account for tiller, and use the –service-account flag when initializing the helm server.</p>
+<p>See <a href="https://docs.helm.sh/using_helm/#role-based-access-control">Tiller and role-based access control</a> for more information.</p>
+<h2 id="ubuntu-with-kubeadm">Ubuntu with ‘kubeadm’</h2>
+<p>Kubernetes bootstrapped with <code>kubeadm</code> is known to work on the following Linux distributions:</p>
+<ul>
+<li>Ubuntu 16.04</li>
+<li>Fedora release 25</li>
+</ul>
+<p>Some versions of Helm (v2.0.0-beta2) require you to <code>export KUBECONFIG=/etc/kubernetes/admin.conf</code> or create a <code>~/.kube/config</code>.</p>
+<h2 id="container-linux-by-coreos">Container Linux by CoreOS</h2>
+<p>Helm requires that kubelet have access to a copy of the <code>socat</code> program to proxy connections to the Tiller API. On Container Linux the Kubelet runs inside of a <a href="https://github.com/kubernetes/kubernetes/tree/master/cluster/images/hyperkube">hyperkube</a> container image that has socat. So, even though Container Linux doesn’t ship <code>socat</code> the container filesystem running kubelet does have socat. To learn more read the <a href="https://coreos.com/kubernetes/docs/latest/kubelet-wrapper.html">Kubelet Wrapper</a> docs.</p>
+<h2 id="openshift">Openshift</h2>
+<p>Helm works straightforward on OpenShift Online, OpenShift Dedicated, OpenShift Container Platform (version &gt;= 3.6) or OpenShift Origin (version &gt;= 3.6). To learn more read <a href="https://blog.openshift.com/getting-started-helm-openshift/">this blog</a> post.</p>
+<h2 id="platform9">Platform9</h2>
+<p>Helm Client and Helm Server (Tiller) are pre-installed with <a href="https://platform9.com/managed-kubernetes/?utm_source=helm_distro_notes">Platform9 Managed Kubernetes</a>. Platform9 provides access to all official Helm charts through the App Catalog UI and native Kubernetes CLI. Additional repositories can be manually added. Further details are available in this <a href="https://platform9.com/support/deploying-kubernetes-apps-platform9-managed-kubernetes/?utm_source=helm_distro_notes">Platform9 App Catalog article</a>.</p>
+<h2 id="dcos">DC/OS</h2>
+<p>Helm (both client and server) has been tested and is working on Mesospheres DC/OS 1.11 Kubernetes platform, and requires no additional configuration.</p>
+</body>
+</html>
+</div>

@@ -1,0 +1,44 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h2 id="the-history-of-the-project">The History of the Project</h2>
+<p>Kubernetes Helm is the merged result of <a href="https://github.com/helm/helm">Helm Classic</a> and the Kubernetes port of GCS Deployment Manager. The project was jointly started by Google and Deis, though it is now part of the CNCF. Many companies now contribute regularly to Helm.</p>
+<p>Differences from Helm Classic:</p>
+<ul>
+<li>Helm now has both a client (<code>helm</code>) and a server (<code>tiller</code>). The server runs inside of Kubernetes, and manages your resources.</li>
+<li>Helm’s chart format has changed for the better:
+<ul>
+<li>Dependencies are immutable and stored inside of a chart’s <code>charts/</code> directory.</li>
+<li>Charts are strongly versioned using <a href="http://semver.org/spec/v2.0.0.html">SemVer 2</a></li>
+<li>Charts can be loaded from directories or from chart archive files</li>
+<li>Helm supports Go templates without requiring you to run <code>generate</code> or <code>template</code> commands.</li>
+<li>Helm makes it easy to configure your releases – and share the configuration with the rest of your team.</li>
+</ul></li>
+<li>Helm chart repositories now use plain HTTP(S) instead of Git/GitHub. There is no longer any GitHub dependency.
+<ul>
+<li>A chart server is a simple HTTP server</li>
+<li>Charts are referenced by version</li>
+<li>The <code>helm serve</code> command will run a local chart server, though you can easily use object storage (S3, GCS) or a regular web server.</li>
+<li>And you can still load charts from a local directory.</li>
+</ul></li>
+<li>The Helm workspace is gone. You can now work anywhere on your filesystem that you want to work.</li>
+</ul>
+</body>
+</html>
+</div>

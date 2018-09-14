@@ -1,0 +1,29 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="chart-repositories-frequently-asked-questions">Chart Repositories: Frequently Asked Questions</h1>
+<p>This section tracks some of the more frequently encountered issues with using chart repositories.</p>
+<p><strong>We’d love your help</strong> making this document better. To add, correct, or remove information, <a href="https://github.com/kubernetes/helm/issues">file an issue</a> or send us a pull request.</p>
+<h2 id="fetching">Fetching</h2>
+<p><strong>Q: Why do I get a <code>unsupported protocol scheme &quot;&quot;</code> error when trying to fetch a chart from my custom repo?</strong></p>
+<p>A: (Helm &lt; 2.5.0) This is likely caused by you creating your chart repo index without specifying the <code>--url</code> flag. Try recreating your <code>index.yaml</code> file with a command like <code>helm repo index --url http://my-repo/charts .</code>, and then re-uploading it to your custom charts repo.</p>
+<p>This behavior was changed in Helm 2.5.0.</p>
+</body>
+</html>
+</div>

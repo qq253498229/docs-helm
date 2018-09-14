@@ -1,0 +1,250 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="yaml-techniques">YAML Techniques</h1>
+<p>Most of this guide has been focused on writing the template language. Here, we’ll look at the YAML format. YAML has some useful features that we, as template authors, can use to make our templates less error prone and easier to read.</p>
+<h2 id="scalars-and-collections">Scalars and Collections</h2>
+<p>According to the <a href="http://yaml.org/spec/1.2/spec.html">YAML spec</a>, there are two types of collections, and many scalar types.</p>
+<p>The two types of collections are maps and sequences:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">map:</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="fu">one:</span><span class="at"> 1</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">  <span class="fu">two:</span><span class="at"> 2</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="fu">three:</span><span class="at"> 3</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="fu">sequence:</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">  <span class="kw">-</span> one</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">  <span class="kw">-</span> two</a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">  <span class="kw">-</span> three</a></code></pre></div>
+<p>Scalar values are individual values (as opposed to collections)</p>
+<h3 id="scalar-types-in-yaml">Scalar Types in YAML</h3>
+<p>In Helm’s dialect of YAML, the scalar data type of a value is determined by a complex set of rules, including the Kubernetes schema for resource definitions. But when inferring types, the following rules tend to hold true.</p>
+<p>If an integer or float is an unquoted bare word, it is typically treated as a numeric type:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">count:</span><span class="at"> 1</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">size:</span><span class="at"> 2.34</span></a></code></pre></div>
+<p>But if they are quoted, they are treated as strings:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="fu">count:</span><span class="at"> </span><span class="st">&quot;1&quot;</span><span class="er"> # &lt;-- string, not int</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2"><span class="fu">size:</span><span class="at"> </span><span class="st">&#39;2.34&#39;</span><span class="er"> # &lt;-- string, not float</span></a></code></pre></div>
+<p>The same is true of booleans:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">isGood:</span><span class="at"> true   </span><span class="co"># bool</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="fu">answer:</span><span class="at"> </span><span class="st">&quot;true&quot;</span><span class="er"> # string</span></a></code></pre></div>
+<p>The word for an empty value is <code>null</code> (not <code>nil</code>).</p>
+<p>Note that <code>port: &quot;80&quot;</code> is valid YAML, and will pass through both the template engine and the YAML parser, but will fail if Kubernetes expects <code>port</code> to be an integer.</p>
+<p>In some cases, you can force a particular type inference using YAML node tags:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> </span><span class="st">&quot;yes, please&quot;</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="fu">age:</span><span class="at"> </span><span class="dt">!!str</span><span class="at"> 21</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="fu">port:</span><span class="at"> </span><span class="dt">!!int</span><span class="at"> </span><span class="st">&quot;80&quot;</span></a></code></pre></div>
+<p>In the above, <code>!!str</code> tells the parser that <code>age</code> is a string, even if it looks like an int. And <code>port</code> is treated as an int, even though it is quoted.</p>
+<h2 id="strings-in-yaml">Strings in YAML</h2>
+<p>Much of the data that we place in YAML documents are strings. YAML has more than one way to represent a string. This section explains the ways and demonstrates how to use some of them.</p>
+<p>There are three “inline” ways of declaring a string:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="fu">way1:</span><span class="at"> bare words</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="fu">way2:</span><span class="at"> </span><span class="st">&quot;double-quoted strings&quot;</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="fu">way3:</span><span class="at"> </span><span class="st">&#39;single-quoted strings&#39;</span></a></code></pre></div>
+<p>All inline styles must be on one line.</p>
+<ul>
+<li>Bare words are unquoted, and are not escaped. For this reason, you have to be careful what characters you use.</li>
+<li>Double-quoted strings can have specific characters escaped with <code>\</code>. For example <code>&quot;\&quot;Hello\&quot;, she said&quot;</code>. You can escape line breaks with <code>\n</code>.</li>
+<li>Single-quoted strings are “literal” strings, and do not use the <code>\</code> to escape characters. The only escape sequence is <code>''</code>, which is decoded as a single <code>'</code>.</li>
+</ul>
+<p>In addition to the one-line strings, you can declare multi-line strings:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">  Latte</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3">  Cappuccino</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">  Espresso</a></code></pre></div>
+<p>The above will treat the value of <code>coffee</code> as a single string equivalent to <code>Latte\nCappuccino\nEspresso\n</code>.</p>
+<p>Note that the first line after the <code>|</code> must be correctly indented. So we could break the example above by doing this:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">         Latte</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">  Cappuccino</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">  Espresso</a></code></pre></div>
+<p>Because <code>Latte</code> is incorrectly indented, we’d get an error like this:</p>
+<pre><code>Error parsing file: error converting YAML to JSON: yaml: line 7: did not find expected key</code></pre>
+<p>In templates, it is sometimes safer to put a fake “first line” of content in a multi-line document just for protection from the above error:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">  <span class="co"># Commented first line</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">         Latte</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">  Cappuccino</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">  Espresso</a></code></pre></div>
+<p>Note that whatever that first line is, it will be preserved in the output of the string. So if you are, for example, using this technique to inject a file’s contents into a ConfigMap, the comment should be of the type expected by whatever is reading that entry.</p>
+<h3 id="controlling-spaces-in-multi-line-strings">Controlling Spaces in Multi-line Strings</h3>
+<p>In the example above, we used <code>|</code> to indicate a multi-line string. But notice that the content of our string was followed with a trailing <code>\n</code>. If we want the YAML processor to strip off the trailing newline, we can add a <code>-</code> after the <code>|</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> |-</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">  Latte</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">  Cappuccino</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">  Espresso</a></code></pre></div>
+<p>Now the <code>coffee</code> value will be: <code>Latte\nCappuccino\nEspresso</code> (with no trailing <code>\n</code>).</p>
+<p>Other times, we might want all trailing whitespace to be preserved. We can do this with the <code>|+</code> notation:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> |+</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">  Latte</a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">  Cappuccino</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4">  Espresso</a>
+<a class="sourceLine" id="cb12-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb12-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb12-7" data-line-number="7"><span class="fu">another:</span><span class="at"> value</span></a></code></pre></div>
+<p>Now the value of <code>coffee</code> will be <code>Latte\nCappuccino\nEspresso\n\n\n</code>.</p>
+<p>Indentation inside of a text block is preserved, and results in the preservation of line breaks, too:</p>
+<pre><code>coffee: |-
+  Latte
+    12 oz
+    16 oz
+  Cappuccino
+  Espresso</code></pre>
+<p>In the above case, <code>coffee</code> will be <code>Latte\n  12 oz\n  16 oz\nCappuccino\nEspresso</code>.</p>
+<h3 id="indenting-and-templates">Indenting and Templates</h3>
+<p>When writing templates, you may find yourself wanting to inject the contents of a file into the template. As we saw in previous chapters, there are two ways of doing this:</p>
+<ul>
+<li>Use <code>{{ .Files.Get &quot;FILENAME&quot; }}</code> to get the contents of a file in the chart.</li>
+<li>Use <code>{{ include &quot;TEMPLATE&quot; . }}</code> to render a template and then place its contents into the chart.</li>
+</ul>
+<p>When inserting files into YAML, it’s good to understand the multi-line rules above. Often times, the easiest way to insert a static file is to do something like this:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="fu">myfile:</span><span class="at"> |</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="kw">{</span>{ .Files.Get &quot;myfile.txt&quot; | indent 2 <span class="kw">}</span>}</a></code></pre></div>
+<p>Note how we do the indentation above: <code>indent 2</code> tells the template engine to indent every line in “myfile.txt” with two spaces. Note that we do not indent that template line. That’s because if we did, the file content of the first line would be indented twice.</p>
+<h3 id="folded-multi-line-strings">Folded Multi-line Strings</h3>
+<p>Sometimes you want to represent a string in your YAML with multiple lines, but want it to be treated as one long line when it is interpreted. This is called “folding”. To declare a folded block, use <code>&gt;</code> instead of <code>|</code>:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> &gt;</span></a>
+<a class="sourceLine" id="cb15-2" data-line-number="2">  Latte</a>
+<a class="sourceLine" id="cb15-3" data-line-number="3">  Cappuccino</a>
+<a class="sourceLine" id="cb15-4" data-line-number="4">  Espresso</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5"></a></code></pre></div>
+<p>The value of <code>coffee</code> above will be <code>Latte Cappuccino Espresso\n</code>. Note that all but the last line feed will be converted to spaces. You can combine the whitespace controls with the folded text marker, so <code>&gt;-</code> will replace or trim all newlines.</p>
+<p>Note that in the folded syntax, indenting text will cause lines to be preserved.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> &gt;-</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2">  Latte</a>
+<a class="sourceLine" id="cb16-3" data-line-number="3">    12 oz</a>
+<a class="sourceLine" id="cb16-4" data-line-number="4">    16 oz</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">  Cappuccino</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">  Espresso</a></code></pre></div>
+<p>The above will produce <code>Latte\n  12 oz\n  16 oz\nCappuccino Espresso</code>. Note that both the spacing and the newlines are still there.</p>
+<h2 id="embedding-multiple-documents-in-one-file">Embedding Multiple Documents in One File</h2>
+<p>It is possible to place more than one YAML documents into a single file. This is done by prefixing a new document with <code>---</code> and ending the document with <code>...</code></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb17-1" data-line-number="1"></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="ot">---</span></a>
+<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="fu">document:</span><span class="at">1</span></a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="co">...</span></a>
+<a class="sourceLine" id="cb17-5" data-line-number="5"><span class="co">---</span></a>
+<a class="sourceLine" id="cb17-6" data-line-number="6"><span class="co">document: 2</span></a>
+<a class="sourceLine" id="cb17-7" data-line-number="7"><span class="co">...</span></a></code></pre></div>
+<p>In many cases, either the <code>---</code> or the <code>...</code> may be omitted.</p>
+<p>Some files in Helm cannot contain more than one doc. If, for example, more than one document is provided inside of a <code>values.yaml</code> file, only the first will be used.</p>
+<p>Template files, however, may have more than one document. When this happens, the file (and all of its documents) is treated as one object during template rendering. But then the resulting YAML is split into multiple documents before it is fed to Kubernetes.</p>
+<p>We recommend only using multiple documents per file when it is absolutely necessary. Having multiple documents in a file can be difficult to debug.</p>
+<h2 id="yaml-is-a-superset-of-json">YAML is a Superset of JSON</h2>
+<p>Because YAML is a superset of JSON, any valid JSON document <em>should</em> be valid YAML.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode json"><code class="sourceCode json"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="fu">{</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2">  <span class="dt">&quot;coffee&quot;</span><span class="fu">:</span> <span class="st">&quot;yes, please&quot;</span><span class="fu">,</span></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">  <span class="dt">&quot;coffees&quot;</span><span class="fu">:</span> <span class="ot">[</span></a>
+<a class="sourceLine" id="cb18-4" data-line-number="4">    <span class="st">&quot;Latte&quot;</span><span class="ot">,</span> <span class="st">&quot;Cappuccino&quot;</span><span class="ot">,</span> <span class="st">&quot;Espresso&quot;</span></a>
+<a class="sourceLine" id="cb18-5" data-line-number="5">  <span class="ot">]</span></a>
+<a class="sourceLine" id="cb18-6" data-line-number="6"><span class="fu">}</span></a></code></pre></div>
+<p>The above is another way of representing this:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> yes, please</span></a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="fu">coffees:</span></a>
+<a class="sourceLine" id="cb19-3" data-line-number="3"><span class="kw">-</span> Latte</a>
+<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="kw">-</span> Cappuccino</a>
+<a class="sourceLine" id="cb19-5" data-line-number="5"><span class="kw">-</span> Espresso</a></code></pre></div>
+<p>And the two can be mixed (with care):</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> </span><span class="st">&quot;yes, please&quot;</span></a>
+<a class="sourceLine" id="cb20-2" data-line-number="2"><span class="fu">coffees:</span><span class="at"> </span><span class="kw">[</span> <span class="st">&quot;Latte&quot;</span><span class="kw">,</span> <span class="st">&quot;Cappuccino&quot;</span><span class="kw">,</span> <span class="st">&quot;Espresso&quot;</span><span class="kw">]</span></a></code></pre></div>
+<p>All three of these should parse into the same internal representation.</p>
+<p>While this means that files such as <code>values.yaml</code> may contain JSON data, Helm does not treat the file extension <code>.json</code> as a valid suffix.</p>
+<h2 id="yaml-anchors">YAML Anchors</h2>
+<p>The YAML spec provides a way to store a reference to a value, and later refer to that value by reference. YAML refers to this as “anchoring”:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> </span><span class="st">&quot;yes, please&quot;</span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2"><span class="fu">favorite:</span><span class="at"> </span><span class="dt">&amp;favoriteCoffee</span><span class="at"> &quot;Cappucino&quot;</span></a>
+<a class="sourceLine" id="cb21-3" data-line-number="3"><span class="fu">coffees:</span></a>
+<a class="sourceLine" id="cb21-4" data-line-number="4">  <span class="kw">-</span> Latte</a>
+<a class="sourceLine" id="cb21-5" data-line-number="5">  <span class="kw">-</span> <span class="dt">*favoriteCoffee</span></a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">  <span class="kw">-</span> Espresso</a></code></pre></div>
+<p>In the above, <code>&amp;favoriteCoffee</code> sets a reference to <code>Cappuccino</code>. Later, that reference is used as <code>*favoriteCoffee</code>. So <code>coffees</code> becomes <code>Latte, Cappuccino, Espresso</code>.</p>
+<p>While there are a few cases where anchors are useful, there is one aspect of them that can cause subtle bugs: The first time the YAML is consumed, the reference is expanded and then discarded.</p>
+<p>So if we were to decode and then re-encode the example above, the resulting YAML would be:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="fu">coffee:</span><span class="at"> yes, please</span></a>
+<a class="sourceLine" id="cb22-2" data-line-number="2"><span class="fu">favorite:</span><span class="at"> Cappucino</span></a>
+<a class="sourceLine" id="cb22-3" data-line-number="3"><span class="fu">coffees:</span></a>
+<a class="sourceLine" id="cb22-4" data-line-number="4"><span class="kw">-</span> Latte</a>
+<a class="sourceLine" id="cb22-5" data-line-number="5"><span class="kw">-</span> Cappucino</a>
+<a class="sourceLine" id="cb22-6" data-line-number="6"><span class="kw">-</span> Espresso</a></code></pre></div>
+<p>Because Helm and Kubernetes often read, modify, and then rewrite YAML files, the anchors will be lost.</p>
+</body>
+</html>
+</div>

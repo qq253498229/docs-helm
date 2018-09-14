@@ -1,0 +1,231 @@
+<div><!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Helm英文文档</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://codeforfun.oss-cn-beijing.aliyuncs.com/markdown2html.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<h1 id="hooks">Hooks</h1>
+<p>Helm provides a <em>hook</em> mechanism to allow chart developers to intervene at certain points in a release’s life cycle. For example, you can use hooks to:</p>
+<ul>
+<li>Load a ConfigMap or Secret during install before any other charts are loaded.</li>
+<li>Execute a Job to back up a database before installing a new chart, and then execute a second job after the upgrade in order to restore data.</li>
+<li>Run a Job before deleting a release to gracefully take a service out of rotation before removing it.</li>
+</ul>
+<p>Hooks work like regular templates, but they have special annotations that cause Helm to utilize them differently. In this section, we cover the basic usage pattern for hooks.</p>
+<p>Hooks are declared as an annotation in the metadata section of a manifest:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> ...</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> ....</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">  <span class="fu">annotations:</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    <span class="fu">&quot;helm.sh/hook&quot;:</span><span class="at"> </span><span class="st">&quot;pre-install&quot;</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co"># ...</span></a></code></pre></div>
+<h2 id="the-available-hooks">The Available Hooks</h2>
+<p>The following hooks are defined:</p>
+<ul>
+<li>pre-install: Executes after templates are rendered, but before any resources are created in Kubernetes.</li>
+<li>post-install: Executes after all resources are loaded into Kubernetes</li>
+<li>pre-delete: Executes on a deletion request before any resources are deleted from Kubernetes.</li>
+<li>post-delete: Executes on a deletion request after all of the release’s resources have been deleted.</li>
+<li>pre-upgrade: Executes on an upgrade request after templates are rendered, but before any resources are loaded into Kubernetes ( e.g. before a Kubernetes apply operation).</li>
+<li>post-upgrade: Executes on an upgrade after all resources have been upgraded.</li>
+<li>pre-rollback: Executes on a rollback request after templates are rendered, but before any resources have been rolled back.</li>
+<li>post-rollback: Executes on a rollback request after all resources have been modified.</li>
+<li>crd-install: Adds CRD resources before any other checks are run. This is used only on CRD definitions that are used by other manifests in the chart.</li>
+</ul>
+<h2 id="hooks-and-the-release-lifecycle">Hooks and the Release Lifecycle</h2>
+<p>Hooks allow you, the chart developer, an opportunity to perform operations at strategic points in a release lifecycle. For example, consider the lifecycle for a <code>helm install</code>. By default, the lifecycle looks like this:</p>
+<ol type="1">
+<li>User runs <code>helm install foo</code></li>
+<li>Chart is loaded into Tiller</li>
+<li>After some verification, Tiller renders the <code>foo</code> templates</li>
+<li>Tiller loads the resulting resources into Kubernetes</li>
+<li>Tiller returns the release name (and other data) to the client</li>
+<li>The client exits</li>
+</ol>
+<p>Helm defines two hooks for the <code>install</code> lifecycle: <code>pre-install</code> and <code>post-install</code>. If the developer of the <code>foo</code> chart implements both hooks, the lifecycle is altered like this:</p>
+<ol type="1">
+<li>User runs <code>helm install foo</code></li>
+<li>Chart is loaded into Tiller</li>
+<li>After some verification, Tiller renders the <code>foo</code> templates</li>
+<li>Tiller prepares to execute the <code>pre-install</code> hooks (loading hook resources into Kubernetes)</li>
+<li>Tiller sorts hooks by weight (assigning a weight of 0 by default) and by name for those hooks with the same weight in ascending order.</li>
+<li>Tiller then loads the hook with the lowest weight first (negative to positive)</li>
+<li>Tiller waits until the hook is “Ready” (except for CRDs)</li>
+<li>Tiller loads the resulting resources into Kubernetes. Note that if the <code>--wait</code> flag is set, Tiller will wait until all resources are in a ready state and will not run the <code>post-install</code> hook until they are ready.</li>
+<li>Tiller executes the <code>post-install</code> hook (loading hook resources)</li>
+<li>Tiller waits until the hook is “Ready”</li>
+<li>Tiller returns the release name (and other data) to the client</li>
+<li>The client exits</li>
+</ol>
+<p>What does it mean to wait until a hook is ready? This depends on the resource declared in the hook. If the resources is a <code>Job</code> kind, Tiller will wait until the job successfully runs to completion. And if the job fails, the release will fail. This is a <em>blocking operation</em>, so the Helm client will pause while the Job is run.</p>
+<p>For all other kinds, as soon as Kubernetes marks the resource as loaded (added or updated), the resource is considered “Ready”. When many resources are declared in a hook, the resources are executed serially. If they have hook weights (see below), they are executed in weighted order. Otherwise, ordering is not guaranteed. (In Helm 2.3.0 and after, they are sorted alphabetically. That behavior, though, is not considered binding and could change in the future.) It is considered good practice to add a hook weight, and set it to <code>0</code> if weight is not important.</p>
+<h3 id="hook-resources-are-not-managed-with-corresponding-releases">Hook resources are not managed with corresponding releases</h3>
+<p>The resources that a hook creates are not tracked or managed as part of the release. Once Tiller verifies that the hook has reached its ready state, it will leave the hook resource alone.</p>
+<p>Practically speaking, this means that if you create resources in a hook, you cannot rely upon <code>helm delete</code> to remove the resources. To destroy such resources, you need to either write code to perform this operation in a <code>pre-delete</code> or <code>post-delete</code> hook or add <code>&quot;helm.sh/hook-delete-policy&quot;</code> annotation to the hook template file.</p>
+<h2 id="writing-a-hook">Writing a Hook</h2>
+<p>Hooks are just Kubernetes manifest files with special annotations in the <code>metadata</code> section. Because they are template files, you can use all of the normal template features, including reading <code>.Values</code>, <code>.Release</code>, and <code>.Template</code>.</p>
+<p>For example, this template, stored in <code>templates/post-install-job.yaml</code>, declares a job to be run on <code>post-install</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> batch/v1</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> Job</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="st">&quot;{{.Release.Name}}&quot;</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">  <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">    <span class="fu">app.kubernetes.io/managed-by:</span><span class="at"> </span><span class="kw">{</span>{.Release.Service | quote <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">    <span class="fu">app.kubernetes.io/instance:</span><span class="at"> </span><span class="kw">{</span>{.Release.Name | quote <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb2-8" data-line-number="8">    <span class="fu">helm.sh/chart:</span><span class="at"> </span><span class="st">&quot;{{.Chart.Name}}-{{.Chart.Version}}&quot;</span></a>
+<a class="sourceLine" id="cb2-9" data-line-number="9">  <span class="fu">annotations:</span></a>
+<a class="sourceLine" id="cb2-10" data-line-number="10">    <span class="co"># This is what defines this resource as a hook. Without this line, the</span></a>
+<a class="sourceLine" id="cb2-11" data-line-number="11">    <span class="co"># job is considered part of the release.</span></a>
+<a class="sourceLine" id="cb2-12" data-line-number="12">    <span class="fu">&quot;helm.sh/hook&quot;:</span><span class="at"> post-install</span></a>
+<a class="sourceLine" id="cb2-13" data-line-number="13">    <span class="fu">&quot;helm.sh/hook-weight&quot;:</span><span class="at"> </span><span class="st">&quot;-5&quot;</span></a>
+<a class="sourceLine" id="cb2-14" data-line-number="14">    <span class="fu">&quot;helm.sh/hook-delete-policy&quot;:</span><span class="at"> hook-succeeded</span></a>
+<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb2-16" data-line-number="16">  <span class="fu">template:</span></a>
+<a class="sourceLine" id="cb2-17" data-line-number="17">    <span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb2-18" data-line-number="18">      <span class="fu">name:</span><span class="at"> </span><span class="st">&quot;{{.Release.Name}}&quot;</span></a>
+<a class="sourceLine" id="cb2-19" data-line-number="19">      <span class="fu">labels:</span></a>
+<a class="sourceLine" id="cb2-20" data-line-number="20">        <span class="fu">app.kubernetes.io/managed-by:</span><span class="at"> </span><span class="kw">{</span>{.Release.Service | quote <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb2-21" data-line-number="21">        <span class="fu">app.kubernetes.io/instance:</span><span class="at"> </span><span class="kw">{</span>{.Release.Name | quote <span class="kw">}</span><span class="at">}</span></a>
+<a class="sourceLine" id="cb2-22" data-line-number="22">        <span class="fu">helm.sh/chart:</span><span class="at"> </span><span class="st">&quot;{{.Chart.Name}}-{{.Chart.Version}}&quot;</span></a>
+<a class="sourceLine" id="cb2-23" data-line-number="23">    <span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb2-24" data-line-number="24">      <span class="fu">restartPolicy:</span><span class="at"> Never</span></a>
+<a class="sourceLine" id="cb2-25" data-line-number="25">      <span class="fu">containers:</span></a>
+<a class="sourceLine" id="cb2-26" data-line-number="26">      <span class="kw">-</span> <span class="fu">name:</span><span class="at"> post-install-job</span></a>
+<a class="sourceLine" id="cb2-27" data-line-number="27">        <span class="fu">image:</span><span class="at"> </span><span class="st">&quot;alpine:3.3&quot;</span></a>
+<a class="sourceLine" id="cb2-28" data-line-number="28">        <span class="fu">command:</span><span class="at"> </span><span class="kw">[</span><span class="st">&quot;/bin/sleep&quot;</span><span class="kw">,</span><span class="st">&quot;{{default &quot;</span>10<span class="st">&quot; .Values.sleepyTime}}&quot;</span><span class="kw">]</span></a></code></pre></div>
+<p>What makes this template a hook is the annotation:</p>
+<pre><code>  annotations:
+    &quot;helm.sh/hook&quot;: post-install</code></pre>
+<p>One resource can implement multiple hooks:</p>
+<pre><code>  annotations:
+    &quot;helm.sh/hook&quot;: post-install,post-upgrade</code></pre>
+<p>Similarly, there is no limit to the number of different resources that may implement a given hook. For example, one could declare both a secret and a config map as a pre-install hook.</p>
+<p>When subcharts declare hooks, those are also evaluated. There is no way for a top-level chart to disable the hooks declared by subcharts.</p>
+<p>It is possible to define a weight for a hook which will help build a deterministic executing order. Weights are defined using the following annotation:</p>
+<pre><code>  annotations:
+    &quot;helm.sh/hook-weight&quot;: &quot;5&quot;</code></pre>
+<p>Hook weights can be positive or negative numbers but must be represented as strings. When Tiller starts the execution cycle of hooks of a particular kind (ex. the <code>pre-install</code> hooks or <code>post-install</code> hooks, etc.) it will sort those hooks in ascending order.</p>
+<p>It is also possible to define policies that determine when to delete corresponding hook resources. Hook deletion policies are defined using the following annotation:</p>
+<pre><code>  annotations:
+    &quot;helm.sh/hook-delete-policy&quot;: hook-succeeded</code></pre>
+<p>You can choose one or more defined annotation values:</p>
+<ul>
+<li><code>&quot;hook-succeeded&quot;</code> specifies Tiller should delete the hook after the hook is successfully executed.</li>
+<li><code>&quot;hook-failed&quot;</code> specifies Tiller should delete the hook if the hook failed during execution.</li>
+<li><code>&quot;before-hook-creation&quot;</code> specifies Tiller should delete the previous hook before the new hook is launched.</li>
+</ul>
+<h3 id="defining-a-crd-with-the-crd-install-hook">Defining a CRD with the <code>crd-install</code> Hook</h3>
+<p>Custom Resource Definitions (CRDs) are a special kind in Kubernetes. They provide a way to define other kinds.</p>
+<p>On occasion, a chart needs to both define a kind and then use it. This is done with the <code>crd-install</code> hook.</p>
+<p>The <code>crd-install</code> hook is executed very early during an installation, before the rest of the manifests are verified. CRDs can be annotated with this hook so that they are installed before any instances of that CRD are referenced. In this way, when verification happens later, the CRDs will be available.</p>
+<p>Here is an example of defining a CRD with a hook, and an instance of the CRD:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> apiextensions.k8s.io/v1beta1</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> CustomResourceDefinition</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> crontabs.stable.example.com</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="fu">annotations:</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">    <span class="fu">&quot;helm.sh/hook&quot;:</span><span class="at"> crd-install</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="fu">spec:</span></a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">  <span class="fu">group:</span><span class="at"> stable.example.com</span></a>
+<a class="sourceLine" id="cb7-9" data-line-number="9">  <span class="fu">version:</span><span class="at"> v1</span></a>
+<a class="sourceLine" id="cb7-10" data-line-number="10">  <span class="fu">scope:</span><span class="at"> Namespaced</span></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11">  <span class="fu">names:</span></a>
+<a class="sourceLine" id="cb7-12" data-line-number="12">    <span class="fu">plural:</span><span class="at"> crontabs</span></a>
+<a class="sourceLine" id="cb7-13" data-line-number="13">    <span class="fu">singular:</span><span class="at"> crontab</span></a>
+<a class="sourceLine" id="cb7-14" data-line-number="14">    <span class="fu">kind:</span><span class="at"> CronTab</span></a>
+<a class="sourceLine" id="cb7-15" data-line-number="15">    <span class="fu">shortNames:</span></a>
+<a class="sourceLine" id="cb7-16" data-line-number="16">    <span class="kw">-</span> ct</a></code></pre></div>
+<p>And:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode yaml"><code class="sourceCode yaml"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">apiVersion:</span><span class="at"> stable.example.com/v1</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="fu">kind:</span><span class="at"> CronTab</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="fu">metadata:</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">  <span class="fu">name:</span><span class="at"> </span><span class="kw">{</span>{ .Release.Name <span class="kw">}</span><span class="at">}-inst</span></a></code></pre></div>
+<p>Both of these can now be in the same chart, provided that the CRD is correctly annotated.</p>
+<h3 id="automatically-delete-hook-from-previous-release">Automatically delete hook from previous release</h3>
+<p>When helm release being updated it is possible, that hook resource already exists in cluster. By default helm will try to create resource and fail with <code>&quot;... already exists&quot;</code> error.</p>
+<p>One might choose <code>&quot;helm.sh/hook-delete-policy&quot;: &quot;before-hook-creation&quot;</code> over <code>&quot;helm.sh/hook-delete-policy&quot;: &quot;hook-succeeded,hook-failed&quot;</code> because:</p>
+<ul>
+<li>It is convenient to keep failed hook job resource in kubernetes for example for manual debug.</li>
+<li>It may be necessary to keep succeeded hook resource in kubernetes for some reason.</li>
+<li>At the same time it is not desirable to do manual resource deletion before helm release upgrade.</li>
+</ul>
+<p><code>&quot;helm.sh/hook-delete-policy&quot;: &quot;before-hook-creation&quot;</code> annotation on hook causes tiller to remove the hook from previous release if there is one before the new hook is launched and can be used with another policy.</p>
+</body>
+</html>
+</div>
