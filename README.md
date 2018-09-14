@@ -1,6 +1,6 @@
-# docs-helm
+# Helm中文文档
 
-[English](src/docs/en/README.md)
+[English](docs/en/README.md)
 
 [英文markdown版](docs/en/README.md)
 
