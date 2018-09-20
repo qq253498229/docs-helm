@@ -1,4 +1,4 @@
-= Helm 文档中文翻译6
+= Helm 文档中文翻译7
 大胃王 <codeforfun@foxmail.cn>
 :toc:
 
